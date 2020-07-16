@@ -4,6 +4,45 @@
 
 More detailed description.
 """
+from collections import Collection
+from itertools import chain, islice
+
+
+def check_string(string, list_of_strings):
+    """ Check validity of and return string against list of valid strings
+
+    :param string: searched string
+    :param list_of_strings: list/tuple/set of valid strings string is to be checked against
+    :return: validate string from list of strings if match
+    """
+    check_type(string, str, list_of_strings, Collection)
+    [check_type(x, str) for x in list_of_strings]
+
+    output_string = []
+
+    for item in list_of_strings:
+        if item.lower().startswith(string.lower()):
+            output_string.append(item)
+
+    if len(output_string) == 1:
+        return output_string[0]
+    elif len(output_string) == 0:
+        raise ValueError("input must match one of those: {}".format(list_of_strings))
+    elif len(output_string) > 1:
+        raise ValueError("input match more than one valid value among {}".format(list_of_strings))
+
+
+def check_type(*args):
+    """Check type of arguments
+
+    :param args: tuple list of argument/type
+    :return:
+    """
+    if len(args) % 2 == 0:
+        for item in range(0, len(args), 2):
+            if not isinstance(args[item], args[item + 1]):
+                raise TypeError("Type of argument {} is '{}' but must be '{}'".format(
+                    item//2 + 1, type(args[item]).__name__, args[item + 1].__name__))
 
 
 def lazyproperty(func):
@@ -18,3 +57,12 @@ def lazyproperty(func):
             setattr(self, name, value)
             return value
     return lazy
+
+
+def split_into_chunks(iterable, size):
+    """ Split iterable into chunks of iterables
+
+    """
+    iterator = iter(iterable)
+    for first in iterator:
+        yield chain([first], islice(iterator, size - 1))

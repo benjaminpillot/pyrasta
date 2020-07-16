@@ -4,10 +4,16 @@
 
 More detailed description.
 """
-from functools import wraps
+import os
+from functools import wraps, partial
 
+import gdal
+
+from pyraster.crs import proj4_from
+from pyraster.io import _copy_to_file
 from pyraster.tools.conversion import _resample_raster, _padding
 from pyraster.tools.merge import _merge
+from pyraster.tools.windows import _windowing
 from pyraster.utils import lazyproperty
 
 
@@ -15,24 +21,34 @@ def return_new_instance(method):
     @wraps(method)
     def _return_new_instance(self, *args, **kwargs):
         output = method(self, *args, **kwargs)
-        try:
-            new_self = self.__class__(output)
-        except RuntimeError:
-            return output
+        new_self = self.__class__(output)
+        new_self._temporary_files.append(output)
+        # try:
+        # except RuntimeError:
+        #     return output
     return _return_new_instance
 
 
 class RasterBase:
 
-    crs = None
-    file = None
-    gdal_dataset = None
-    gdal_driver = None
+    # Class attribute that is mutable
+    # This is on purpose so that we keep track
+    # of all instances based on temp files
+    _temporary_files = []
 
-    rasterio_dataset = None
+    def __init__(self, src_file):
+        """ Raster class constructor
 
-    def __init__(self):
-        pass
+        """
+        self._file = src_file
+        self._gdal_dataset = gdal.Open(src_file)
+        self._gdal_driver = self._gdal_dataset.GetDriver()
+
+    def __del__(self):
+        self._gdal_dataset = None
+        if self._file in self._temporary_files:
+            self._temporary_files.remove(self._file)
+            os.remove(self._file)
 
     @classmethod
     def merge(cls, rasters, bounds=None):
@@ -84,34 +100,78 @@ class RasterBase:
         """
         return _resample_raster(self, factor)
 
+    def to_file(self, filename):
+        """ Write raster copy to file
+
+        Description
+        -----------
+        Write raster to given file
+
+        Parameters
+        ----------
+        filename: str
+            File path to write to
+
+        Return
+        ------
+        """
+        return _copy_to_file(self, filename)
+
+    @return_new_instance
+    def windowing(self, window_size, method, f_handle, *args, **kwargs):
+        """ Apply function within sliding/block window
+
+        Description
+        -----------
+
+        Parameters
+        ----------
+
+        Return
+        ------
+        RasterBase:
+            New instance
+
+        """
+        return _windowing(self, partial(f_handle, *args, **kwargs), window_size, method)
+
+    @property
+    def crs(self):
+        return proj4_from(self._gdal_dataset.GetProjection())
+
     @lazyproperty
     def bounds(self):
-        return self.rasterio_dataset.bounds
+        return self.x_origin, self.y_origin - self.resolution[1] * self.y_size, \
+               self.x_origin + self.resolution[0] * self.x_size, self.y_origin
+
+    @lazyproperty
+    def geo_transform(self):
+        return self._gdal_dataset.GetGeoTransform()
 
     @lazyproperty
     def nb_band(self):
-        return self.gdal_dataset.RasterCount
+        return self._gdal_dataset.RasterCount
 
     @lazyproperty
     def no_data(self):
-        return [self.gdal_dataset.GetRasterBand(band + 1).GetNoDataValue() for band in range(self.nb_band)]
+        return [self._gdal_dataset.GetRasterBand(band + 1).GetNoDataValue() for band in range(self.nb_band)]
 
     @lazyproperty
     def resolution(self):
-        return self.rasterio_dataset.res
+        return self.geo_transform[1], abs(self.geo_transform[5])
 
     @lazyproperty
     def x_origin(self):
-        return self.rasterio_dataset.bounds[0]
+        return self.geo_transform[0]
 
     @lazyproperty
     def x_size(self):
-        return self.gdal_dataset.RasterXSize
+        return self._gdal_dataset.RasterXSize
 
     @lazyproperty
     def y_origin(self):
-        return self.rasterio_dataset.bounds[3]
+        return self.geo_transform[3]
 
     @lazyproperty
     def y_size(self):
-        return self.gdal_dataset.RasterYSize
+        return self._gdal_dataset.RasterYSize

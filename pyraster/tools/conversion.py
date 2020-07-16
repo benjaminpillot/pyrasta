@@ -33,16 +33,16 @@ def _padding(raster, pad_x, pad_y, pad_value):
     """
 
     with RasterTempFile() as out_file:
-        out_ds = raster.gdal_driver.Create(out_file, raster.x_size + 2 * pad_x, raster.y_size + 2 * pad_y,
-                                           raster.nb_band, raster.gdal_dataset.GetRasterBand(1).DataType)
+        out_ds = raster._gdal_driver.Create(out_file, raster.x_size + 2 * pad_x, raster.y_size + 2 * pad_y,
+                                            raster.nb_band, raster._gdal_dataset.GetRasterBand(1).DataType)
     out_ds.SetGeoTransform((raster.x_origin - pad_x * raster.resolution[0], raster.resolution[0],
                             0, raster.y_origin + pad_y * raster.resolution[1], 0, -raster.resolution[1]))
-    out_ds.SetProjection(raster.gdal_dataset.GetProjection())
+    out_ds.SetProjection(raster._gdal_dataset.GetProjection())
     set_no_data(out_ds, raster.no_data)
 
     for band in range(1, raster.nb_band + 1):
         out_ds.GetRasterBand(band).Fill(pad_value)
-        gdal.Warp(out_ds, raster.gdal_dataset)
+        gdal.Warp(out_ds, raster._gdal_dataset)
 
     # Close dataset
     out_ds = None
@@ -55,7 +55,7 @@ def _project_raster(raster, new_crs):
 
     """
     with RasterTempFile() as out_file:
-        gdal.Warp(out_file, raster.gdal_dataset, dstSRS=srs_from(new_crs))
+        gdal.Warp(out_file, raster._gdal_dataset, dstSRS=srs_from(new_crs))
 
 
 def _resample_raster(raster, factor):
@@ -69,15 +69,15 @@ def _resample_raster(raster, factor):
         Resampling factor
     """
     with RasterTempFile() as out_file:
-        out_ds = raster.gdal_driver.Create(out_file, raster.x_size * factor, raster.y_size * factor, raster.nb_band,
-                                           raster.gdal_dataset.GetRasterBand(1).DataType)
+        out_ds = raster._gdal_driver.Create(out_file, raster.x_size * factor, raster.y_size * factor, raster.nb_band,
+                                            raster._gdal_dataset.GetRasterBand(1).DataType)
     out_ds.SetGeoTransform((raster.x_origin, raster.resolution[0] / factor, 0, raster.y_origin, 0,
                             -raster.resolution[1] / factor))
-    out_ds.SetProjection(raster.gdal_dataset.GetProjection())
+    out_ds.SetProjection(raster._gdal_dataset.GetProjection())
     set_no_data(out_ds, raster.no_data)
 
     for band in range(1, raster.nb_band+1):
-        gdal.RegenerateOverview(raster.gdal_dataset.GetRasterBand(band), out_ds.GetRasterBand(band), 'mode')
+        gdal.RegenerateOverview(raster._gdal_dataset.GetRasterBand(band), out_ds.GetRasterBand(band), 'mode')
 
     # Close dataset
     out_ds = None
