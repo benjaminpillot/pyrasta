@@ -8,7 +8,7 @@ import gdal
 
 from pyraster.crs import srs_from
 from pyraster.io import RasterTempFile
-from pyraster.tools import set_no_data
+from pyraster.tools import set_no_data, gdal_temp_dataset
 
 
 def _padding(raster, pad_x, pad_y, pad_value):
@@ -31,14 +31,9 @@ def _padding(raster, pad_x, pad_y, pad_value):
     Returns
     -------
     """
-
-    with RasterTempFile() as out_file:
-        out_ds = raster._gdal_driver.Create(out_file, raster.x_size + 2 * pad_x, raster.y_size + 2 * pad_y,
-                                            raster.nb_band, raster._gdal_dataset.GetRasterBand(1).DataType)
-    out_ds.SetGeoTransform((raster.x_origin - pad_x * raster.resolution[0], raster.resolution[0],
-                            0, raster.y_origin + pad_y * raster.resolution[1], 0, -raster.resolution[1]))
-    out_ds.SetProjection(raster._gdal_dataset.GetProjection())
-    set_no_data(out_ds, raster.no_data)
+    geo_transform = (raster.x_origin - pad_x * raster.resolution[0], raster.resolution[0], 0,
+                     raster.y_origin + pad_y * raster.resolution[1], 0, -raster.resolution[1])
+    out_ds, out_file = gdal_temp_dataset(raster, raster.x_size + 2 * pad_x, raster.y_size + 2 * pad_y, geo_transform)
 
     for band in range(1, raster.nb_band + 1):
         out_ds.GetRasterBand(band).Fill(pad_value)
@@ -68,13 +63,9 @@ def _resample_raster(raster, factor):
     factor: int or float
         Resampling factor
     """
-    with RasterTempFile() as out_file:
-        out_ds = raster._gdal_driver.Create(out_file, raster.x_size * factor, raster.y_size * factor, raster.nb_band,
-                                            raster._gdal_dataset.GetRasterBand(1).DataType)
-    out_ds.SetGeoTransform((raster.x_origin, raster.resolution[0] / factor, 0, raster.y_origin, 0,
-                            -raster.resolution[1] / factor))
-    out_ds.SetProjection(raster._gdal_dataset.GetProjection())
-    set_no_data(out_ds, raster.no_data)
+    geo_transform = (raster.x_origin, raster.resolution[0] / factor, 0,
+                     raster.y_origin, 0, -raster.resolution[1] / factor)
+    out_ds, out_file = gdal_temp_dataset(raster, raster.x_size * factor, raster.y_size * factor, geo_transform)
 
     for band in range(1, raster.nb_band+1):
         gdal.RegenerateOverview(raster._gdal_dataset.GetRasterBand(band), out_ds.GetRasterBand(band), 'mode')

@@ -8,7 +8,9 @@ import os
 from functools import wraps, partial
 
 import gdal
+import multiprocessing as mp
 
+from pyraster import FLOAT32
 from pyraster.crs import proj4_from
 from pyraster.io import _copy_to_file
 from pyraster.tools.conversion import _resample_raster, _padding
@@ -23,6 +25,8 @@ def return_new_instance(method):
         output = method(self, *args, **kwargs)
         new_self = self.__class__(output)
         new_self._temporary_files.append(output)
+
+        return new_self
         # try:
         # except RuntimeError:
         #     return output
@@ -118,7 +122,8 @@ class RasterBase:
         return _copy_to_file(self, filename)
 
     @return_new_instance
-    def windowing(self, window_size, method, f_handle, *args, **kwargs):
+    def windowing(self, window_size, method, f_handle, f_kwargs=None, data_type=FLOAT32, no_data=None,
+                  nb_processes=mp.cpu_count()):
         """ Apply function within sliding/block window
 
         Description
@@ -133,7 +138,11 @@ class RasterBase:
             New instance
 
         """
-        return _windowing(self, partial(f_handle, *args, **kwargs), window_size, method)
+        if f_kwargs is None:
+            return _windowing(self, f_handle, window_size, method, data_type, no_data, nb_processes)
+        else:
+            return _windowing(self, partial(f_handle, **f_kwargs), window_size,
+                              method, data_type, no_data, nb_processes)
 
     @property
     def crs(self):

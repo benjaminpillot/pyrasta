@@ -4,17 +4,20 @@
 
 More detailed description.
 """
+from functools import wraps
+
 from numba import jit
 from tqdm import tqdm
 
 import multiprocessing as mp
 import numpy as np
 
-from pyraster.io import RasterTempFile
-from pyraster.utils import split_into_chunks, check_string
+from pyraster.tools import gdal_temp_dataset
+from pyraster.tools.exceptions import WindowGeneratorError
+from pyraster.utils import split_into_chunks, check_string, check_type
 
 
-def _windowing(raster, function, window_size, method, nb_processes=mp.cpu_count()):
+def _windowing(raster, function, window_size, method, data_type, no_data, nb_processes):
     """ Apply function in each moving or block window in raster
 
     Description
@@ -24,23 +27,16 @@ def _windowing(raster, function, window_size, method, nb_processes=mp.cpu_count(
     ----------
 
     """
-    check_string(method, ('block', 'moving'))
-
     window_generator = WindowGenerator(raster, window_size, method)
-
-    with RasterTempFile() as out_file:
-        out_ds = raster._gdal_driver.Create(out_file, window_generator.x_size, window_generator.y_size, raster.nb_band,
-                                            raster._gdal_dataset.GetRasterBand(1).DataType)
-    out_ds.SetGeoTransform(window_generator.geo_transform)
-    out_ds.SetProjection(raster._gdal_dataset.GetProjection())
+    out_ds, out_file = gdal_temp_dataset(raster, window_generator.x_size, window_generator.y_size,
+                                         window_generator.geo_transform, data_type, no_data)
 
     band = 1
     y = 0
     for win_gen in tqdm(split_into_chunks(window_generator, window_generator.x_size),
                         total=len(window_generator)//window_generator.x_size + 1, desc="Sliding window"):
         with mp.Pool(processes=nb_processes) as pool:
-            output = np.expand_dims(list(pool.map(function, win_gen,
-                                                  chunksize=window_generator.x_size//nb_processes)), axis=0)
+            output = np.expand_dims(list(pool.map(function, win_gen, chunksize=500)), axis=0)
 
         # Write row to raster
         out_ds.GetRasterBand(band).WriteArray(output, 0, y)
@@ -55,6 +51,42 @@ def _windowing(raster, function, window_size, method, nb_processes=mp.cpu_count(
     out_ds = None
 
     return out_file
+
+
+def integer(setter):
+
+    @wraps(setter)
+    def _integer(self, value):
+        try:
+            check_type(value, int)
+        except TypeError:
+            raise WindowGeneratorError("'%s' must be an integer value but is: '%s'" %
+                                       (setter.__name__, type(value).__name__))
+        output = setter(self, value)
+
+    return _integer
+
+
+def odd(setter):
+
+    @wraps(setter)
+    def _odd(self, value):
+        if value % 2 == 0:
+            raise WindowGeneratorError("'%s' must be an odd value (=%d)" % (setter.__name__, value))
+        output = setter(self, value)
+
+    return _odd
+
+
+def positive(setter):
+
+    @wraps(setter)
+    def _positive(self, value):
+        if value <= 0:
+            raise WindowGeneratorError("'%s' must be positive (=%d)" % (setter.__name__, value))
+        output = setter(self, value)
+
+    return _positive
 
 
 class WindowGenerator:
@@ -92,6 +124,28 @@ class WindowGenerator:
             return topleftx, pxsizex * self.window_size, rotx, toplefty, roty, pxsizey * self.window_size
         else:
             return self.raster._gdal_dataset.GetGeoTransform()
+
+    @property
+    def method(self):
+        return self._method
+
+    @method.setter
+    def method(self, value):
+        try:
+            self._method = check_string(value, {'block', 'moving'})
+        except (TypeError, ValueError) as e:
+            raise WindowGeneratorError("Invalid sliding window method: '%s'" % value)
+
+    @property
+    def window_size(self):
+        return self._window_size
+
+    @window_size.setter
+    @integer
+    @odd
+    @positive
+    def window_size(self, value):
+        self._window_size = value
 
     @property
     def x_size(self):
