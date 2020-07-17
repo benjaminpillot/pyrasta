@@ -12,7 +12,7 @@ __email__ = 'benjaminpillot@riseup.net'
 from pyraster.io import RasterTempFile
 
 
-def gdal_temp_dataset(raster, x_size, y_size, geo_transform, data_type=None, no_data=None):
+def _gdal_temp_dataset(raster, x_size, y_size, geo_transform, data_type=None, no_data=None):
     """ Create gdal temporary dataset
 
     """
@@ -26,12 +26,12 @@ def gdal_temp_dataset(raster, x_size, y_size, geo_transform, data_type=None, no_
         out_ds = raster._gdal_driver.Create(out_file, x_size, y_size, raster.nb_band, data_type)
     out_ds.SetGeoTransform(geo_transform)
     out_ds.SetProjection(raster._gdal_dataset.GetProjection())
-    set_no_data(out_ds, no_data)
+    _set_no_data(out_ds, no_data)
 
     return out_ds, out_file
 
 
-def set_no_data(gdal_ds, no_data):
+def _set_no_data(gdal_ds, no_data):
     """ Set no data value into gdal dataset
 
     Description

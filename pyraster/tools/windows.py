@@ -12,7 +12,7 @@ from tqdm import tqdm
 import multiprocessing as mp
 import numpy as np
 
-from pyraster.tools import gdal_temp_dataset
+from pyraster.tools import _gdal_temp_dataset
 from pyraster.tools.exceptions import WindowGeneratorError
 from pyraster.utils import split_into_chunks, check_string, check_type
 
@@ -28,8 +28,8 @@ def _windowing(raster, function, window_size, method, data_type, no_data, nb_pro
 
     """
     window_generator = WindowGenerator(raster, window_size, method)
-    out_ds, out_file = gdal_temp_dataset(raster, window_generator.x_size, window_generator.y_size,
-                                         window_generator.geo_transform, data_type, no_data)
+    out_ds, out_file = _gdal_temp_dataset(raster, window_generator.x_size, window_generator.y_size,
+                                          window_generator.geo_transform, data_type, no_data)
 
     band = 1
     y = 0

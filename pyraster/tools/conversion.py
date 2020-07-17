@@ -8,7 +8,7 @@ import gdal
 
 from pyraster.crs import srs_from
 from pyraster.io import RasterTempFile
-from pyraster.tools import set_no_data, gdal_temp_dataset
+from pyraster.tools import _set_no_data, _gdal_temp_dataset
 
 
 def _padding(raster, pad_x, pad_y, pad_value):
@@ -33,7 +33,7 @@ def _padding(raster, pad_x, pad_y, pad_value):
     """
     geo_transform = (raster.x_origin - pad_x * raster.resolution[0], raster.resolution[0], 0,
                      raster.y_origin + pad_y * raster.resolution[1], 0, -raster.resolution[1])
-    out_ds, out_file = gdal_temp_dataset(raster, raster.x_size + 2 * pad_x, raster.y_size + 2 * pad_y, geo_transform)
+    out_ds, out_file = _gdal_temp_dataset(raster, raster.x_size + 2 * pad_x, raster.y_size + 2 * pad_y, geo_transform)
 
     for band in range(1, raster.nb_band + 1):
         out_ds.GetRasterBand(band).Fill(pad_value)
@@ -65,7 +65,7 @@ def _resample_raster(raster, factor):
     """
     geo_transform = (raster.x_origin, raster.resolution[0] / factor, 0,
                      raster.y_origin, 0, -raster.resolution[1] / factor)
-    out_ds, out_file = gdal_temp_dataset(raster, raster.x_size * factor, raster.y_size * factor, geo_transform)
+    out_ds, out_file = _gdal_temp_dataset(raster, raster.x_size * factor, raster.y_size * factor, geo_transform)
 
     for band in range(1, raster.nb_band+1):
         gdal.RegenerateOverview(raster._gdal_dataset.GetRasterBand(band), out_ds.GetRasterBand(band), 'mode')
