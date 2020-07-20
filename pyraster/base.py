@@ -4,15 +4,14 @@
 
 More detailed description.
 """
-import os
-from functools import wraps, partial
+from functools import wraps
 
 import gdal
 import multiprocessing as mp
 
 from pyraster import FLOAT32
 from pyraster.crs import proj4_from
-from pyraster.io import _copy_to_file
+from pyraster.io import _copy_to_file, RasterTempFile
 from pyraster.tools.conversion import _resample_raster, _padding
 from pyraster.tools.merge import _merge
 from pyraster.tools.windows import _windowing
@@ -22,23 +21,16 @@ from pyraster.utils import lazyproperty
 def return_new_instance(method):
     @wraps(method)
     def _return_new_instance(self, *args, **kwargs):
-        output = method(self, *args, **kwargs)
-        new_self = self.__class__(output)
-        new_self._temporary_files.append(output)
+        with RasterTempFile() as out_file:
+            method(self, out_file.path, *args, **kwargs)
+            new_self = self.__class__(out_file.path)
+            new_self._temp_file = out_file
 
         return new_self
-        # try:
-        # except RuntimeError:
-        #     return output
     return _return_new_instance
 
 
 class RasterBase:
-
-    # Class attribute that is mutable
-    # This is on purpose so that we keep track
-    # of all instances based on temp files
-    _temporary_files = []
 
     def __init__(self, src_file):
         """ Raster class constructor
@@ -50,16 +42,44 @@ class RasterBase:
 
     def __del__(self):
         self._gdal_dataset = None
-        if self._file in self._temporary_files:
-            self._temporary_files.remove(self._file)
-            os.remove(self._file)
+
+    @return_new_instance
+    def _pad_extent(self, out_file, pad_x, pad_y, value):
+        """ Pad extent around raster
+        """
+        _padding(self, out_file, pad_x, pad_y, value)
+
+    @return_new_instance
+    def _resample(self, out_file, factor):
+        """ Resample raster
+        """
+        _resample_raster(self, out_file, factor)
+
+    @return_new_instance
+    def _windowing(self, out_file, f_handle, window_size, method, data_type, no_data, nb_processes):
+        """ Apply sliding window to raster
+        """
+        _windowing(self, out_file, f_handle, window_size, method, data_type, no_data, nb_processes)
 
     @classmethod
     def merge(cls, rasters, bounds=None):
+        """ Merge multiple rasters
 
+        Description
+        -----------
+
+        Parameters
+        ----------
+        rasters: list or tuple
+            list of RasterBase instances
+        bounds: tuple
+            bounds of the new merged raster
+
+        Returns
+        -------
+        """
         return _merge(rasters, bounds)
 
-    @return_new_instance
     def pad_extent(self, pad_x, pad_y, value):
         """ Pad raster extent with given values
 
@@ -81,9 +101,8 @@ class RasterBase:
         RasterBase:
             New instance
         """
-        return _padding(self, pad_x, pad_y, value)
+        return self._pad_extent(pad_x, pad_y, value)
 
-    @return_new_instance
     def resample(self, factor):
         """ Resample raster
 
@@ -102,7 +121,36 @@ class RasterBase:
         RasterBase:
             New temporary resampled instance
         """
-        return _resample_raster(self, factor)
+        return self._resample(factor)
+
+    def windowing(self, f_handle, window_size, method, data_type=FLOAT32,
+                  no_data=None, nb_processes=mp.cpu_count()):
+        """ Apply function within sliding/block window
+
+        Description
+        -----------
+
+        Parameters
+        ----------
+        f_handle: function
+        window_size: int
+            size of window
+        method: str
+            sliding window method ('block' or 'moving')
+        data_type: int
+            gdal data type
+        no_data: list or tuple
+            list of no data for each raster band
+        nb_processes: int
+            number of processes for multiprocessing
+
+        Return
+        ------
+        RasterBase:
+            New instance
+
+        """
+        return self._windowing(f_handle, window_size, method, data_type, no_data, nb_processes)
 
     def to_file(self, filename):
         """ Write raster copy to file
@@ -120,29 +168,6 @@ class RasterBase:
         ------
         """
         return _copy_to_file(self, filename)
-
-    @return_new_instance
-    def windowing(self, window_size, method, f_handle, f_kwargs=None, data_type=FLOAT32, no_data=None,
-                  nb_processes=mp.cpu_count()):
-        """ Apply function within sliding/block window
-
-        Description
-        -----------
-
-        Parameters
-        ----------
-
-        Return
-        ------
-        RasterBase:
-            New instance
-
-        """
-        if f_kwargs is None:
-            return _windowing(self, f_handle, window_size, method, data_type, no_data, nb_processes)
-        else:
-            return _windowing(self, partial(f_handle, **f_kwargs), window_size,
-                              method, data_type, no_data, nb_processes)
 
     @property
     def crs(self):

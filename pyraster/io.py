@@ -28,7 +28,7 @@ class File:
         self.path = path
 
     def __enter__(self):
-        return self.path
+        return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         pass
@@ -37,11 +37,10 @@ class File:
 class TempFile(File):
 
     def __del__(self):
-        pass
-        # try:
-        #     os.remove(self.path)
-        # except FileNotFoundError:
-        #     pass
+        try:
+            os.remove(self.path)
+        except FileNotFoundError:
+            pass
 
 
 class RasterTempFile(TempFile):
