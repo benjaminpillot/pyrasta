@@ -12,12 +12,14 @@ from tqdm import tqdm
 import multiprocessing as mp
 import numpy as np
 
-from pyraster.tools import _gdal_temp_dataset
+from pyraster.tools import _gdal_temp_dataset, _return_raster
 from pyraster.tools.exceptions import WindowGeneratorError
 from pyraster.utils import split_into_chunks, check_string, check_type
 
 
-def _windowing(raster, out_file, function, window_size, method, data_type, no_data, nb_processes):
+@_return_raster
+def _windowing(raster, out_file, function, band, window_size,
+               method, data_type, no_data, chunk_size, nb_processes):
     """ Apply function in each moving or block window in raster
 
     Description
@@ -27,25 +29,23 @@ def _windowing(raster, out_file, function, window_size, method, data_type, no_da
     ----------
 
     """
-    window_generator = WindowGenerator(raster, window_size, method)
+    window_generator = WindowGenerator(raster, band, window_size, method)
     out_ds = _gdal_temp_dataset(out_file, raster, window_generator.x_size, window_generator.y_size,
                                 window_generator.geo_transform, data_type, no_data)
 
-    band = 1
     y = 0
-    for win_gen in tqdm(split_into_chunks(window_generator, window_generator.x_size),
-                        total=len(window_generator)//window_generator.x_size + 1, desc="Sliding window"):
+    n_rows = chunk_size // window_generator.x_size
+    chunk_size = n_rows * window_generator.x_size
+    for win_gen in tqdm(split_into_chunks(window_generator, chunk_size),
+                        total=len(window_generator)//chunk_size + 1, desc="Sliding window"):
         with mp.Pool(processes=nb_processes) as pool:
-            output = np.expand_dims(list(pool.map(function, win_gen, chunksize=500)), axis=0)
+            output = list(pool.map(function, win_gen, chunksize=500))
 
         # Write row to raster
-        out_ds.GetRasterBand(band).WriteArray(output, 0, y)
+        out_ds.GetRasterBand(band).WriteArray(np.reshape(output, (n_rows, window_generator.x_size)), 0, y)
 
-        # Update row index + band number if necessary
-        y += 1
-        if y == raster.y_size:
-            y = 0
-            band += 1
+        # Update row index
+        y += n_rows
 
     # Close dataset
     out_ds = None
@@ -92,7 +92,7 @@ class WindowGenerator:
 
     """
 
-    def __init__(self, raster, window_size, method):
+    def __init__(self, raster, band, window_size, method):
         """ WindowGenerator constructor
 
         Description
@@ -102,6 +102,8 @@ class WindowGenerator:
         ----------
         raster: RasterBase
             raster for which we must compute windows
+        band: int
+            raster band number
         window_size: int
             size of window in pixels
         method: str
@@ -111,9 +113,12 @@ class WindowGenerator:
         ------
 
         """
+        self.band = band
         self.raster = raster
         self.window_size = window_size
         self.method = method
+
+        self.image = self.raster._gdal_dataset.GetRasterBand(self.band).ReadAsArray()
 
     @property
     def geo_transform(self):
@@ -133,6 +138,16 @@ class WindowGenerator:
             self._method = check_string(value, {'block', 'moving'})
         except (TypeError, ValueError) as e:
             raise WindowGeneratorError("Invalid sliding window method: '%s'" % value)
+
+    @property
+    def band(self):
+        return self._band
+
+    @band.setter
+    @integer
+    @positive
+    def band(self, value):
+        self._band = value
 
     @property
     def window_size(self):
@@ -160,7 +175,7 @@ class WindowGenerator:
             return self.raster.y_size
 
     def __len__(self):
-        return self.y_size * self.x_size * self.raster.nb_band
+        return self.y_size * self.x_size
 
     def __iter__(self):
         def windows():
@@ -169,8 +184,9 @@ class WindowGenerator:
             elif self.method == "moving":
                 return get_moving_windows(self.window_size, self.raster.x_size, self.raster.y_size)
 
-        return (self.raster._gdal_dataset.GetRasterBand(band + 1).ReadAsArray(*window)
-                for band in range(self.raster.nb_band) for window in windows())
+        # return (self.raster._gdal_dataset.GetRasterBand(self.band).ReadAsArray(*window)
+        #         for window in windows())
+        return (self.image[w[1]:w[1] + w[3], w[0]:w[0] + w[2]] for w in windows())
 
 
 @jit(nopython=True, nogil=True)

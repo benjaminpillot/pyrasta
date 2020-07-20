@@ -13,6 +13,7 @@ from pyraster import FLOAT32
 from pyraster.crs import proj4_from
 from pyraster.io import _copy_to_file, RasterTempFile
 from pyraster.tools.conversion import _resample_raster, _padding
+from pyraster.tools.exceptions import RasterBaseError
 from pyraster.tools.merge import _merge
 from pyraster.tools.windows import _windowing
 from pyraster.utils import lazyproperty
@@ -35,10 +36,21 @@ class RasterBase:
     def __init__(self, src_file):
         """ Raster class constructor
 
+        Description
+        -----------
+
+        Parameters
+        ----------
+        src_file: str
+            valid path to raster file
         """
-        self._file = src_file
-        self._gdal_dataset = gdal.Open(src_file)
+        try:
+            self._gdal_dataset = gdal.Open(src_file)
+        except RuntimeError as e:
+            raise RasterBaseError('\nGDAL returns: \"%s\"' % e)
+
         self._gdal_driver = self._gdal_dataset.GetDriver()
+        self._file = src_file
 
     def __del__(self):
         self._gdal_dataset = None
@@ -55,11 +67,13 @@ class RasterBase:
         """
         _resample_raster(self, out_file, factor)
 
-    @return_new_instance
-    def _windowing(self, out_file, f_handle, window_size, method, data_type, no_data, nb_processes):
-        """ Apply sliding window to raster
-        """
-        _windowing(self, out_file, f_handle, window_size, method, data_type, no_data, nb_processes)
+    # @return_new_instance
+    # def _windowing(self, out_file, f_handle, band, window_size, method,
+    #                data_type, no_data, chunk_size, nb_processes):
+    #     """ Apply sliding window to raster
+    #     """
+    #     _windowing(self, out_file, f_handle, band, window_size, method,
+    #                data_type, no_data, chunk_size, nb_processes)
 
     @classmethod
     def merge(cls, rasters, bounds=None):
@@ -123,8 +137,8 @@ class RasterBase:
         """
         return self._resample(factor)
 
-    def windowing(self, f_handle, window_size, method, data_type=FLOAT32,
-                  no_data=None, nb_processes=mp.cpu_count()):
+    def windowing(self, f_handle, window_size, method, band=None, data_type=FLOAT32,
+                  no_data=None, chunk_size=100000, nb_processes=mp.cpu_count()):
         """ Apply function within sliding/block window
 
         Description
@@ -137,10 +151,14 @@ class RasterBase:
             size of window
         method: str
             sliding window method ('block' or 'moving')
+        band: int
+            raster band
         data_type: int
             gdal data type
         no_data: list or tuple
             list of no data for each raster band
+        chunk_size: int
+            data chunk size for multiprocessing
         nb_processes: int
             number of processes for multiprocessing
 
@@ -150,7 +168,16 @@ class RasterBase:
             New instance
 
         """
-        return self._windowing(f_handle, window_size, method, data_type, no_data, nb_processes)
+        if band is None:
+            band = 1
+
+        if no_data is None:
+            no_data = self.no_data
+
+        # return self._windowing(f_handle, band, window_size, method,
+        #                        data_type, no_data, chunk_size, nb_processes)
+        return _windowing(self, f_handle, band, window_size, method,
+                          data_type, no_data, chunk_size, nb_processes)
 
     def to_file(self, filename):
         """ Write raster copy to file

@@ -9,19 +9,27 @@ __author__ = 'Benjamin Pillot'
 __copyright__ = 'Copyright 2020, Benjamin Pillot'
 __email__ = 'benjaminpillot@riseup.net'
 
+from functools import wraps
+
 from pyraster.io import RasterTempFile
 
 
-def _gdal_temp_dataset(out_file, raster, x_size, y_size, geo_transform, data_type=None, no_data=None):
+def _return_raster(function):
+    @wraps(function)
+    def return_raster(raster, *args, **kwargs):
+        with RasterTempFile() as out_file:
+            function(raster, out_file.path, *args, **kwargs)
+            new_raster = raster.__class__(out_file.path)
+            new_raster._temp_file = out_file
+
+        return new_raster
+    return return_raster
+
+
+def _gdal_temp_dataset(out_file, raster, x_size, y_size, geo_transform, data_type, no_data):
     """ Create gdal temporary dataset
 
     """
-    if no_data is None:
-        no_data = raster.no_data
-
-    if data_type is None:
-        data_type = raster._gdal_dataset.GetRasterBand(1).DataType
-
     out_ds = raster._gdal_driver.Create(out_file, x_size, y_size, raster.nb_band, data_type)
     out_ds.SetGeoTransform(geo_transform)
     out_ds.SetProjection(raster._gdal_dataset.GetProjection())
