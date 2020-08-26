@@ -4,31 +4,18 @@
 
 More detailed description.
 """
-from functools import wraps
 
 import gdal
 import multiprocessing as mp
 
 from pyraster import FLOAT32
 from pyraster.crs import proj4_from
-from pyraster.io import _copy_to_file, RasterTempFile
-from pyraster.tools.conversion import _resample_raster, _padding
+from pyraster.io import _copy_to_file
+from pyraster.tools.conversion import _resample_raster, _padding, _rescale_raster
 from pyraster.tools.exceptions import RasterBaseError
 from pyraster.tools.merge import _merge
 from pyraster.tools.windows import _windowing
 from pyraster.utils import lazyproperty
-
-
-def return_new_instance(method):
-    @wraps(method)
-    def _return_new_instance(self, *args, **kwargs):
-        with RasterTempFile() as out_file:
-            method(self, out_file.path, *args, **kwargs)
-            new_self = self.__class__(out_file.path)
-            new_self._temp_file = out_file
-
-        return new_self
-    return _return_new_instance
 
 
 class RasterBase:
@@ -54,26 +41,6 @@ class RasterBase:
 
     def __del__(self):
         self._gdal_dataset = None
-
-    @return_new_instance
-    def _pad_extent(self, out_file, pad_x, pad_y, value):
-        """ Pad extent around raster
-        """
-        _padding(self, out_file, pad_x, pad_y, value)
-
-    @return_new_instance
-    def _resample(self, out_file, factor):
-        """ Resample raster
-        """
-        _resample_raster(self, out_file, factor)
-
-    # @return_new_instance
-    # def _windowing(self, out_file, f_handle, band, window_size, method,
-    #                data_type, no_data, chunk_size, nb_processes):
-    #     """ Apply sliding window to raster
-    #     """
-    #     _windowing(self, out_file, f_handle, band, window_size, method,
-    #                data_type, no_data, chunk_size, nb_processes)
 
     @classmethod
     def merge(cls, rasters, bounds=None):
@@ -115,7 +82,7 @@ class RasterBase:
         RasterBase:
             New instance
         """
-        return self._pad_extent(pad_x, pad_y, value)
+        return _padding(self, pad_x, pad_y, value)
 
     def resample(self, factor):
         """ Resample raster
@@ -135,7 +102,25 @@ class RasterBase:
         RasterBase:
             New temporary resampled instance
         """
-        return self._resample(factor)
+        return _resample_raster(self, factor)
+
+    def rescale(self, r_min, r_max):
+        """ Rescale values from raster
+
+        Description
+        -----------
+
+        Parameters
+        ----------
+        r_min: int or float
+            minimum value of new range
+        r_max: int or float
+            maximum value of new range
+
+        Return
+        ------
+        """
+        return _rescale_raster(self, r_min, r_max)
 
     def windowing(self, f_handle, window_size, method, band=None, data_type=FLOAT32,
                   no_data=None, chunk_size=100000, nb_processes=mp.cpu_count()):
@@ -210,12 +195,24 @@ class RasterBase:
         return self._gdal_dataset.GetGeoTransform()
 
     @lazyproperty
+    def max(self):
+        return [self._gdal_dataset.GetRasterBand(band + 1).ComputeRasterMinMax()[1] for band in range(self.nb_band)]
+
+    @lazyproperty
+    def min(self):
+        return [self._gdal_dataset.GetRasterBand(band + 1).ComputeRasterMinMax()[0] for band in range(self.nb_band)]
+
+    @lazyproperty
     def nb_band(self):
         return self._gdal_dataset.RasterCount
 
     @lazyproperty
     def no_data(self):
         return [self._gdal_dataset.GetRasterBand(band + 1).GetNoDataValue() for band in range(self.nb_band)]
+
+    @lazyproperty
+    def data_type(self):
+        return self._gdal_dataset.GetRasterBand(1).DataType
 
     @lazyproperty
     def resolution(self):
