@@ -8,9 +8,10 @@ import gdal
 
 from pyraster.crs import srs_from
 from pyraster.io import RasterTempFile
-from pyraster.tools import _gdal_temp_dataset
+from pyraster.tools import _gdal_temp_dataset, _return_raster
 
 
+@_return_raster
 def _padding(raster, out_file, pad_x, pad_y, pad_value):
     """ Add pad values around raster
 
@@ -36,7 +37,8 @@ def _padding(raster, out_file, pad_x, pad_y, pad_value):
     geo_transform = (raster.x_origin - pad_x * raster.resolution[0], raster.resolution[0], 0,
                      raster.y_origin + pad_y * raster.resolution[1], 0, -raster.resolution[1])
     out_ds = _gdal_temp_dataset(out_file, raster, raster.x_size + 2 * pad_x,
-                                raster.y_size + 2 * pad_y, geo_transform)
+                                raster.y_size + 2 * pad_y, geo_transform,
+                                raster.data_type, raster.no_data)
 
     for band in range(1, raster.nb_band + 1):
         out_ds.GetRasterBand(band).Fill(pad_value)
@@ -54,6 +56,7 @@ def _project_raster(raster, new_crs):
         gdal.Warp(out_file, raster._gdal_dataset, dstSRS=srs_from(new_crs))
 
 
+@_return_raster
 def _resample_raster(raster, out_file, factor):
     """ Resample raster
 
@@ -69,10 +72,22 @@ def _resample_raster(raster, out_file, factor):
     geo_transform = (raster.x_origin, raster.resolution[0] / factor, 0,
                      raster.y_origin, 0, -raster.resolution[1] / factor)
     out_ds = _gdal_temp_dataset(out_file, raster, raster.x_size * factor,
-                                raster.y_size * factor, geo_transform)
+                                raster.y_size * factor, geo_transform,
+                                raster.data_type, raster.no_data)
 
     for band in range(1, raster.nb_band+1):
         gdal.RegenerateOverview(raster._gdal_dataset.GetRasterBand(band), out_ds.GetRasterBand(band), 'mode')
+
+    # Close dataset
+    out_ds = None
+
+
+@_return_raster
+def _rescale_raster(raster, out_file, ds_min, ds_max):
+
+    out_ds = gdal.Translate(out_file, raster._gdal_dataset,
+                            scaleParams=[[src_min, src_max, ds_min, ds_max]
+                                         for src_min, src_max in zip(raster.min, raster.max)])
 
     # Close dataset
     out_ds = None
