@@ -14,6 +14,7 @@ from pyraster.io import _copy_to_file
 from pyraster.tools.conversion import _resample_raster, _padding, _rescale_raster
 from pyraster.tools.exceptions import RasterBaseError
 from pyraster.tools.merge import _merge
+from pyraster.tools.stats import _histogram
 from pyraster.tools.windows import _windowing
 from pyraster.utils import lazyproperty
 
@@ -42,6 +43,25 @@ class RasterBase:
     def __del__(self):
         self._gdal_dataset = None
 
+    def histogram(self, nb_bins=10, normalized=True):
+        """ Compute raster histogram
+
+        Description
+        -----------
+
+        Parameters
+        ----------
+        nb_bins: int
+            number of bins for histogram
+        normalized: bool
+            if True, normalize histogram frequency values
+
+        Returns
+        -------
+
+        """
+        return _histogram(self, nb_bins, normalized)
+
     @classmethod
     def merge(cls, rasters, bounds=None):
         """ Merge multiple rasters
@@ -58,6 +78,7 @@ class RasterBase:
 
         Returns
         -------
+
         """
         return _merge(rasters, bounds)
 
