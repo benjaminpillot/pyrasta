@@ -30,7 +30,8 @@ def _windowing(raster, out_file, function, band, window_size,
 
     """
     window_generator = WindowGenerator(raster, band, window_size, method)
-    out_ds = _gdal_temp_dataset(out_file, raster, window_generator.x_size, window_generator.y_size,
+    out_ds = _gdal_temp_dataset(out_file, raster._gdal_driver, raster._gdal_dataset.GetProjection(),
+                                window_generator.x_size, window_generator.y_size, raster.nb_band,
                                 window_generator.geo_transform, data_type, no_data)
 
     y = 0
@@ -118,7 +119,7 @@ class WindowGenerator:
         self.window_size = window_size
         self.method = method
 
-        self.image = self.raster._gdal_dataset.GetRasterBand(self.band).ReadAsArray()
+        # self.image = self.raster._gdal_dataset.GetRasterBand(self.band).ReadAsArray()
 
     @property
     def geo_transform(self):
@@ -184,9 +185,9 @@ class WindowGenerator:
             elif self.method == "moving":
                 return get_moving_windows(self.window_size, self.raster.x_size, self.raster.y_size)
 
-        # return (self.raster._gdal_dataset.GetRasterBand(self.band).ReadAsArray(*window)
-        #         for window in windows())
-        return (self.image[w[1]:w[1] + w[3], w[0]:w[0] + w[2]] for w in windows())
+        return (self.raster._gdal_dataset.GetRasterBand(self.band).ReadAsArray(*window)
+                for window in windows())
+        # return (self.image[w[1]:w[1] + w[3], w[0]:w[0] + w[2]] for w in windows())
 
 
 @jit(nopython=True, nogil=True)
