@@ -7,8 +7,6 @@ More detailed description.
 import os
 from tempfile import mkstemp
 
-from pyraster import FLOAT32
-
 
 def _copy_to_file(raster, out_file):
     """
@@ -47,5 +45,5 @@ class RasterTempFile(TempFile):
     """ Create temporary raster file
 
     """
-    def __init__(self):
-        super().__init__(mkstemp(suffix='.tif')[1])
+    def __init__(self, extension):
+        super().__init__(mkstemp(suffix='.' + extension)[1])
