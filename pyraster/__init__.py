@@ -22,3 +22,5 @@ INT16 = gdal.GetDataTypeByName('Int16')
 INT32 = gdal.GetDataTypeByName('Int32')
 UINT16 = gdal.GetDataTypeByName('Uint16')
 UINT32 = gdal.GetDataTypeByName('Uint32')
+
+GTIFF_DRIVER = gdal.GetDriverByName('Gtiff')
