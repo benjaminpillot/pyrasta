@@ -11,13 +11,14 @@ __email__ = 'benjaminpillot@riseup.net'
 
 from functools import wraps
 
+from pyraster import GTIFF_DRIVER
 from pyraster.io import RasterTempFile
 
 
 def _return_raster(function):
     @wraps(function)
     def return_raster(raster, *args, **kwargs):
-        with RasterTempFile() as out_file:
+        with RasterTempFile(raster._gdal_driver.GetMetadata()['DMD_EXTENSION']) as out_file:
             function(raster, out_file.path, *args, **kwargs)
             new_raster = raster.__class__(out_file.path)
             new_raster._temp_file = out_file
@@ -26,13 +27,17 @@ def _return_raster(function):
     return return_raster
 
 
-def _gdal_temp_dataset(out_file, raster, x_size, y_size, geo_transform, data_type, no_data):
+def _gdal_temp_dataset(out_file, gdal_driver, projection, x_size, y_size, nb_band, geo_transform, data_type, no_data):
     """ Create gdal temporary dataset
 
     """
-    out_ds = raster._gdal_driver.Create(out_file, x_size, y_size, raster.nb_band, data_type)
+    try:
+        out_ds = gdal_driver.Create(out_file, x_size, y_size, nb_band, data_type)
+    except RuntimeError:
+        out_ds = GTIFF_DRIVER.Create(out_file, x_size, y_size, nb_band, data_type)
+
     out_ds.SetGeoTransform(geo_transform)
-    out_ds.SetProjection(raster._gdal_dataset.GetProjection())
+    out_ds.SetProjection(projection)
     _set_no_data(out_ds, no_data)
 
     return out_ds
