@@ -11,6 +11,7 @@ import multiprocessing as mp
 from pyraster import FLOAT32
 from pyraster.crs import proj4_from
 from pyraster.io import _copy_to_file
+from pyraster.tools.calculator import _op, _raster_calculation
 from pyraster.tools.conversion import _resample_raster, _padding, _rescale_raster
 from pyraster.tools.exceptions import RasterBaseError
 from pyraster.tools.merge import _merge
@@ -39,6 +40,30 @@ class RasterBase:
 
         self._gdal_driver = self._gdal_dataset.GetDriver()
         self._file = src_file
+
+    def __add__(self, other):
+        """ Add two raster
+
+        """
+        return _op(self, other, "add")
+
+    def __sub__(self, other):
+        """ Subtract two raster
+
+        """
+        return _op(self, other, "sub")
+
+    def __mul__(self, other):
+        """ Multiply two raster
+
+        """
+        return _op(self, other, "mul")
+
+    def __truediv__(self, other):
+        """ Divide two raster
+
+        """
+        return _op(self, other, "truediv")
 
     def __del__(self):
         self._gdal_dataset = None
@@ -105,6 +130,33 @@ class RasterBase:
         """
         return _padding(self, pad_x, pad_y, value)
 
+    @classmethod
+    def raster_calculation(cls, rasters, fhandle, window_size=1000, gdal_driver=gdal.GetDriverByName("Gtiff")):
+        """ Raster expression calculation
+
+        Description
+        -----------
+        Calculate raster expression stated in "fhandle"
+        such as: fhandle(raster1, raster2, etc.)
+
+        Parameters
+        ----------
+        rasters: list or tuple
+            collection of RasterBase instances
+        fhandle: function
+            expression to calculate
+        window_size: int
+            size of window/chunk to set in memory during calculation
+        gdal_driver: osgeo.gdal.Driver
+            GDAL driver (output format)
+
+        Returns
+        -------
+        RasterBase:
+            New temporary instance
+        """
+        return _raster_calculation(rasters, fhandle, window_size, gdal_driver)
+
     def resample(self, factor):
         """ Resample raster
 
@@ -143,6 +195,23 @@ class RasterBase:
         """
         return _rescale_raster(self, r_min, r_max)
 
+    def to_file(self, filename):
+        """ Write raster copy to file
+
+        Description
+        -----------
+        Write raster to given file
+
+        Parameters
+        ----------
+        filename: str
+            File path to write to
+
+        Return
+        ------
+        """
+        return _copy_to_file(self, filename)
+
     def windowing(self, f_handle, window_size, method, band=None, data_type=FLOAT32,
                   no_data=None, chunk_size=100000, nb_processes=mp.cpu_count()):
         """ Apply function within sliding/block window
@@ -180,27 +249,8 @@ class RasterBase:
         if no_data is None:
             no_data = self.no_data
 
-        # return self._windowing(f_handle, band, window_size, method,
-        #                        data_type, no_data, chunk_size, nb_processes)
         return _windowing(self, f_handle, band, window_size, method,
                           data_type, no_data, chunk_size, nb_processes)
-
-    def to_file(self, filename):
-        """ Write raster copy to file
-
-        Description
-        -----------
-        Write raster to given file
-
-        Parameters
-        ----------
-        filename: str
-            File path to write to
-
-        Return
-        ------
-        """
-        return _copy_to_file(self, filename)
 
     @property
     def crs(self):
