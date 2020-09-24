@@ -35,12 +35,20 @@ def _windowing(raster, out_file, function, band, window_size,
                                 window_generator.geo_transform, data_type, no_data)
 
     y = 0
-    n_rows = chunk_size // window_generator.x_size
-    chunk_size = n_rows * window_generator.x_size
+    # chunk size cannot be 0 and cannot
+    # be higher than height of window
+    # generator (y_size). And it must be
+    # a multiple of window generator width
+    # (x_size)
+    chunk_size = max(min(chunk_size // window_generator.x_size, window_generator.y_size)
+                     * window_generator.x_size, window_generator.x_size)
     for win_gen in tqdm(split_into_chunks(window_generator, chunk_size),
-                        total=len(window_generator)//chunk_size + 1, desc="Sliding window"):
+                        total=len(window_generator)//chunk_size + int(len(window_generator) % chunk_size != 0),
+                        desc="Sliding window computation"):
         with mp.Pool(processes=nb_processes) as pool:
             output = list(pool.map(function, win_gen, chunksize=500))
+
+        n_rows = len(output) // window_generator.x_size
 
         # Write row to raster
         out_ds.GetRasterBand(band).WriteArray(np.reshape(output, (n_rows, window_generator.x_size)), 0, y)
