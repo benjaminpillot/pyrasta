@@ -131,13 +131,15 @@ class RasterBase:
         return _padding(self, pad_x, pad_y, value)
 
     @classmethod
-    def raster_calculation(cls, rasters, fhandle, window_size=1000, gdal_driver=gdal.GetDriverByName("Gtiff")):
+    def raster_calculation(cls, rasters, fhandle, window_size=1000, gdal_driver=gdal.GetDriverByName("Gtiff"),
+                           data_type=FLOAT32, **kwargs):
         """ Raster expression calculation
 
         Description
         -----------
         Calculate raster expression stated in "fhandle"
         such as: fhandle(raster1, raster2, etc.)
+        Calculation is made for each band.
 
         Parameters
         ----------
@@ -149,13 +151,17 @@ class RasterBase:
             size of window/chunk to set in memory during calculation
         gdal_driver: osgeo.gdal.Driver
             GDAL driver (output format)
+        data_type: int
+            GDAL data type for output raster
+        kwargs:
+            fhandle keyword arguments (if any)
 
         Returns
         -------
         RasterBase:
             New temporary instance
         """
-        return _raster_calculation(rasters, fhandle, window_size, gdal_driver)
+        return _raster_calculation(cls, rasters, fhandle, window_size, gdal_driver, data_type, **kwargs)
 
     def resample(self, factor):
         """ Resample raster
