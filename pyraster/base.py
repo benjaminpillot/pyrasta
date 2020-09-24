@@ -285,7 +285,8 @@ class RasterBase:
 
     @lazyproperty
     def no_data(self):
-        return [self._gdal_dataset.GetRasterBand(band + 1).GetNoDataValue() for band in range(self.nb_band)]
+        # return [self._gdal_dataset.GetRasterBand(band + 1).GetNoDataValue() for band in range(self.nb_band)]
+        return self._gdal_dataset.GetRasterBand(1).GetNoDataValue()
 
     @lazyproperty
     def data_type(self):
