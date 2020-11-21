@@ -7,8 +7,48 @@ More detailed description.
 import gdal
 
 from pyraster.crs import srs_from
-from pyraster.io import RasterTempFile
+from pyraster._io import RasterTempFile, VrtTempFile
 from pyraster.tools import _gdal_temp_dataset, _return_raster
+
+
+@_return_raster
+def _align_raster(in_raster, out_file, on_raster):
+    """ Align raster on other raster
+
+    """
+    out_ds = _gdal_temp_dataset(out_file, in_raster._gdal_driver, on_raster._gdal_dataset.GetProjection(),
+                                on_raster.x_size, on_raster.y_size, in_raster.nb_band,
+                                on_raster.geo_transform, in_raster.data_type, in_raster.no_data)
+
+    gdal.Warp(out_ds, in_raster._gdal_dataset)
+
+    # Close dataset
+    out_ds = None
+
+
+@_return_raster
+def _extract_bands(raster, out_file, bands):
+
+    out_ds = gdal.Translate(out_file, raster._gdal_dataset, bandList=bands)
+
+    # Close dataset
+    out_ds = None
+
+
+def _merge_bands(raster_class, sources, resolution, gdal_driver, no_data):
+    """ Merge multiple bands into one raster
+
+    """
+    with RasterTempFile(gdal_driver.GetMetadata()['DMD_EXTENSION']) as out_file:
+
+        vrt_ds = gdal.BuildVRT(VrtTempFile().path, [src._gdal_dataset for src in sources],
+                               resolution=resolution, separate=True, VRTNodata=no_data)
+        out_ds = gdal.Translate(out_file.path, vrt_ds)
+
+    # Close dataset
+    out_ds = None
+
+    return raster_class(out_file.path)
 
 
 @_return_raster
