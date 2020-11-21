@@ -12,7 +12,7 @@ __email__ = 'benjaminpillot@riseup.net'
 import numpy as np
 
 from pyraster import FLOAT32
-from pyraster.io import RasterTempFile
+from pyraster._io import RasterTempFile
 from pyraster.tools import _gdal_temp_dataset, _return_raster
 from pyraster.tools.windows import get_block_windows
 from tqdm import tqdm
@@ -30,7 +30,10 @@ def _op(raster1, out_file, raster2, op_type):
 
         for window in get_block_windows(1000, raster1.x_size, raster1.y_size):
             array1 = raster1._gdal_dataset.GetRasterBand(band).ReadAsArray(*window).astype("float32")
-            array2 = raster2._gdal_dataset.GetRasterBand(band).ReadAsArray(*window).astype("float32")
+            try:
+                array2 = raster2._gdal_dataset.GetRasterBand(band).ReadAsArray(*window).astype("float32")
+            except AttributeError:
+                array2 = raster2  # If second input is not a raster but a scalar
 
             if op_type == "add":
                 result = array1 + array2
@@ -49,7 +52,7 @@ def _op(raster1, out_file, raster2, op_type):
     out_ds = None
 
 
-def _raster_calculation(raster_class, sources, fhandle, window_size, gdal_driver, data_type, **kwargs):
+def _raster_calculation(raster_class, sources, fhandle, window_size, gdal_driver, data_type, no_data, **kwargs):
     """ Calculate raster expression
 
     """
@@ -65,22 +68,30 @@ def _raster_calculation(raster_class, sources, fhandle, window_size, gdal_driver
                            total=length, desc="Calculate raster expression"):
             list_of_arrays = []
             for src in sources:
-                list_of_arrays.append(src._gdal_dataset.ReadAsArray(*window).astype("float32"))
+                array = src._gdal_dataset.ReadAsArray(*window).astype("float32")
+                array[array == src.no_data] = np.nan
+                list_of_arrays.append(array)
 
             result = fhandle(*list_of_arrays, **kwargs)
+            result[np.isnan(result)] = no_data
 
             if is_first_run:
                 if result.ndim == 2:
-                    result = np.expand_dims(result, axis=0)
+                    nb_band = 1
+                else:
+                    nb_band = result.shape[0]
 
                 out_ds = _gdal_temp_dataset(out_file.path, gdal_driver, master_raster._gdal_dataset.GetProjection(),
-                                            master_raster.x_size, master_raster.y_size, result.shape[0],
-                                            master_raster.geo_transform, data_type, master_raster.no_data)
+                                            master_raster.x_size, master_raster.y_size, nb_band,
+                                            master_raster.geo_transform, data_type, no_data)
 
                 is_first_run = False
 
-            for band in range(result.shape[0]):
-                out_ds.GetRasterBand(band + 1).WriteArray(result[band, :, :], window[0], window[1])
+            if nb_band == 1:
+                out_ds.GetRasterBand(1).WriteArray(result, window[0], window[1])
+            else:
+                for band in range(nb_band):
+                    out_ds.GetRasterBand(band + 1).WriteArray(result[band, :, :], window[0], window[1])
 
     # Close dataset
     out_ds = None
