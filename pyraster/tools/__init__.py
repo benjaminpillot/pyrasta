@@ -12,7 +12,7 @@ __email__ = 'benjaminpillot@riseup.net'
 from functools import wraps
 
 from pyraster import GTIFF_DRIVER
-from pyraster.io import RasterTempFile
+from pyraster._io import RasterTempFile
 
 
 def _return_raster(function):
@@ -59,6 +59,6 @@ def _set_no_data(gdal_ds, no_data):
     """
     for band in range(gdal_ds.RasterCount):
         try:
-            gdal_ds.GetRasterBand(band + 1).SetNoDataValue(no_data[band])
+            gdal_ds.GetRasterBand(band + 1).SetNoDataValue(no_data)
         except TypeError:
             pass
