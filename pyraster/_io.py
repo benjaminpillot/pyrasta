@@ -47,3 +47,9 @@ class RasterTempFile(TempFile):
     """
     def __init__(self, extension):
         super().__init__(mkstemp(suffix='.' + extension)[1])
+
+
+class VrtTempFile(TempFile):
+
+    def __init__(self):
+        super().__init__(mkstemp(suffix='.vrt')[1])
