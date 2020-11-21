@@ -4,7 +4,7 @@
 
 More detailed description.
 """
-from functools import wraps
+from functools import wraps, partial
 
 from numba import jit
 from tqdm import tqdm
@@ -15,6 +15,14 @@ import numpy as np
 from pyraster.tools import _gdal_temp_dataset, _return_raster
 from pyraster.tools.exceptions import WindowGeneratorError
 from pyraster.utils import split_into_chunks, check_string, check_type
+
+
+def _set_nan(array, function, no_data):
+    """ Replace no data values by NaNs
+
+    """
+    array[array == no_data] = np.nan
+    return function(array)
 
 
 @_return_raster
@@ -46,8 +54,12 @@ def _windowing(raster, out_file, function, band, window_size,
                         total=len(window_generator)//chunk_size + int(len(window_generator) % chunk_size != 0),
                         desc="Sliding window computation"):
         with mp.Pool(processes=nb_processes) as pool:
-            output = list(pool.map(function, win_gen, chunksize=500))
+            output = np.asarray(list(pool.map(partial(_set_nan, function=function, no_data=no_data), win_gen,
+                                              chunksize=500)))
 
+        output[np.isnan(output)] = no_data
+
+        # Set number of rows to write to file
         n_rows = len(output) // window_generator.x_size
 
         # Write row to raster
@@ -164,7 +176,6 @@ class WindowGenerator:
 
     @window_size.setter
     @integer
-    @odd
     @positive
     def window_size(self, value):
         self._window_size = value
