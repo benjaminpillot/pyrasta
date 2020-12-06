@@ -187,8 +187,8 @@ class RasterBase:
 
         Returns
         -------
-        RasterBase:
-            New instance
+        RasterBase
+            A padded RasterBase
         """
         return _padding(self, pad_x, pad_y, value)
 
