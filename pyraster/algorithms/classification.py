@@ -13,7 +13,7 @@ from functools import wraps
 
 import numpy as np
 from pyraster import INT16
-from pyraster.io import RasterTempFile
+from pyraster._io import RasterTempFile
 from pyraster.tools import _gdal_temp_dataset
 from sklearn.cluster import KMeans
 
