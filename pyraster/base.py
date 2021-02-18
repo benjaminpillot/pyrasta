@@ -12,8 +12,8 @@ from pyraster import FLOAT32
 from pyraster.crs import proj4_from
 from pyraster.io.files import _copy_to_file
 from pyraster.tools.calculator import _op, _raster_calculation
-from pyraster.tools.conversion import _resample_raster, _padding, _rescale_raster, _align_raster, _extract_bands, \
-    _merge_bands
+from pyraster.tools.conversion import _resample_raster, _padding, _rescale_raster, \
+    _align_raster, _extract_bands, _merge_bands
 from pyraster.tools.exceptions import RasterBaseError
 from pyraster.tools.merge import _merge
 from pyraster.tools.stats import _histogram
@@ -150,7 +150,8 @@ class RasterBase:
         return _merge(rasters, bounds, output_format, data_type, no_data)
 
     @classmethod
-    def merge_bands(cls, rasters, resolution="highest", gdal_driver=gdal.GetDriverByName("Gtiff"), no_data=-999):
+    def merge_bands(cls, rasters, resolution="highest",
+                    gdal_driver=gdal.GetDriverByName("Gtiff"), no_data=-999):
         """ Create one single raster from multiple bands
 
         Description
@@ -193,7 +194,8 @@ class RasterBase:
         return _padding(self, pad_x, pad_y, value)
 
     @classmethod
-    def raster_calculation(cls, rasters, fhandle, window_size=1000, gdal_driver=gdal.GetDriverByName("Gtiff"),
+    def raster_calculation(cls, rasters, fhandle, window_size=1000,
+                           gdal_driver=gdal.GetDriverByName("Gtiff"),
                            data_type=FLOAT32, no_data=-999, **kwargs):
         """ Raster expression calculation
 
@@ -225,7 +227,8 @@ class RasterBase:
         RasterBase:
             New temporary instance
         """
-        return _raster_calculation(cls, rasters, fhandle, window_size, gdal_driver, data_type, no_data, **kwargs)
+        return _raster_calculation(cls, rasters, fhandle, window_size,
+                                   gdal_driver, data_type, no_data, **kwargs)
 
     def resample(self, factor):
         """ Resample raster
