@@ -10,7 +10,7 @@ import multiprocessing as mp
 
 from pyraster import FLOAT32
 from pyraster.crs import proj4_from
-from pyraster._io import _copy_to_file
+from pyraster.io.files import _copy_to_file
 from pyraster.tools.calculator import _op, _raster_calculation
 from pyraster.tools.conversion import _resample_raster, _padding, _rescale_raster, _align_raster, _extract_bands, \
     _merge_bands
