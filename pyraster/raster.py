@@ -5,11 +5,6 @@
 More detailed description.
 """
 
-__author__ = 'Benjamin Pillot'
-__copyright__ = 'Copyright 2020, Benjamin Pillot'
-__email__ = 'benjaminpillot@riseup.net'
-
-
 from pyraster.base import RasterBase
 
 
