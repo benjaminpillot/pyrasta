@@ -7,13 +7,13 @@ More detailed description.
 import gdal
 import numpy as np
 import rasterio
-from pyraster._io import RasterTempFile
+from pyraster.io_.files import RasterTempFile
 from rasterio import windows
 
 from rasterio.transform import Affine
 
 
-def _merge(sources, bounds, output_format, data_type, no_data):
+def _merge(raster_class, sources, bounds, output_format, data_type, no_data):
     """ Merge multiple raster sources
 
     Description
@@ -34,10 +34,13 @@ def _merge(sources, bounds, output_format, data_type, no_data):
         ys = [item for src in sources for item in src.bounds[2::]]
         dst_w, dst_s, dst_e, dst_n = min(xs), min(ys), max(xs), max(ys)
 
-    with RasterTempFile(gdal.GetDriverByName(output_format).GetMetadata()['DMD_EXTENSION']) as out_file:
+    with RasterTempFile(gdal.GetDriverByName(output_format).GetMetadata()['DMD_EXTENSION']) \
+            as out_file:
         gdal.Warp(out_file.path, [src._gdal_dataset for src in sources], outputBounds=bounds,
                   format=output_format, srcNodata=[src.no_data for src in sources],
                   dstNodata=no_data, outputType=data_type)
+
+    return raster_class(out_file.path)
 
 
 def _rasterio_merge_modified(sources, out_file, bounds=None, driver="GTiff", precision=7):
