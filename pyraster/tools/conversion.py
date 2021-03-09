@@ -7,7 +7,7 @@ More detailed description.
 import gdal
 
 from pyraster.crs import srs_from
-from pyraster._io import RasterTempFile, VrtTempFile
+from pyraster.io_.files import RasterTempFile, VrtTempFile
 from pyraster.tools import _gdal_temp_dataset, _return_raster
 
 
@@ -16,7 +16,8 @@ def _align_raster(in_raster, out_file, on_raster):
     """ Align raster on other raster
 
     """
-    out_ds = _gdal_temp_dataset(out_file, in_raster._gdal_driver, on_raster._gdal_dataset.GetProjection(),
+    out_ds = _gdal_temp_dataset(out_file, in_raster._gdal_driver,
+                                on_raster._gdal_dataset.GetProjection(),
                                 on_raster.x_size, on_raster.y_size, in_raster.nb_band,
                                 on_raster.geo_transform, in_raster.data_type, in_raster.no_data)
 
@@ -94,6 +95,21 @@ def _project_raster(raster, new_crs):
     """
     with RasterTempFile(raster._gdal_driver.GetMetadata()['DMD_EXTENSION']) as out_file:
         gdal.Warp(out_file, raster._gdal_dataset, dstSRS=srs_from(new_crs))
+
+
+def _read_array(raster, upper_west, lower_east):
+    """ Read array from raster
+
+    """
+    if upper_west is None or lower_east is None:
+        return raster._gdal_dataset.ReadAsArray()
+    else:
+        xoff = int((upper_west[0] - raster.x_origin) / raster.geo_transform[1])
+        yoff = int((upper_west[1] - raster.y_origin) / raster.geo_transform[5])
+        x_size = int((lower_east[0] - upper_west[0]) / raster.geo_transform[1])
+        y_size = int((lower_east[1] - upper_west[1]) / raster.geo_transform[5])
+
+        return raster._gdal_dataset.ReadAsArray(xoff, yoff, x_size, y_size)
 
 
 @_return_raster
