@@ -77,9 +77,15 @@ def _padding(raster, out_file, pad_x, pad_y, pad_value):
     """
     geo_transform = (raster.x_origin - pad_x * raster.resolution[0], raster.resolution[0], 0,
                      raster.y_origin + pad_y * raster.resolution[1], 0, -raster.resolution[1])
-    out_ds = _gdal_temp_dataset(out_file, raster._gdal_driver, raster._gdal_dataset.GetProjection(),
-                                raster.x_size + 2 * pad_x, raster.y_size + 2 * pad_y, raster.nb_band,
-                                geo_transform, raster.data_type, raster.no_data)
+    out_ds = _gdal_temp_dataset(out_file,
+                                raster._gdal_driver,
+                                raster._gdal_dataset.GetProjection(),
+                                raster.x_size + 2 * pad_x,
+                                raster.y_size + 2 * pad_y,
+                                raster.nb_band,
+                                geo_transform,
+                                raster.data_type,
+                                raster.no_data)
 
     for band in range(1, raster.nb_band + 1):
         out_ds.GetRasterBand(band).Fill(pad_value)
@@ -132,7 +138,8 @@ def _resample_raster(raster, out_file, factor):
                                 geo_transform, raster.data_type, raster.no_data)
 
     for band in range(1, raster.nb_band+1):
-        gdal.RegenerateOverview(raster._gdal_dataset.GetRasterBand(band), out_ds.GetRasterBand(band), 'mode')
+        gdal.RegenerateOverview(raster._gdal_dataset.GetRasterBand(band),
+                                out_ds.GetRasterBand(band), 'mode')
 
     # Close dataset
     out_ds = None
