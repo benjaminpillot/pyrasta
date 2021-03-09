@@ -133,9 +133,15 @@ def _resample_raster(raster, out_file, factor):
     """
     geo_transform = (raster.x_origin, raster.resolution[0] / factor, 0,
                      raster.y_origin, 0, -raster.resolution[1] / factor)
-    out_ds = _gdal_temp_dataset(out_file, raster._gdal_driver, raster._gdal_dataset.GetProjection(),
-                                raster.x_size * factor, raster.y_size * factor, raster.nb_band,
-                                geo_transform, raster.data_type, raster.no_data)
+    out_ds = _gdal_temp_dataset(out_file,
+                                raster._gdal_driver,
+                                raster._gdal_dataset.GetProjection(),
+                                raster.x_size * factor,
+                                raster.y_size * factor,
+                                raster.nb_band,
+                                geo_transform,
+                                raster.data_type,
+                                raster.no_data)
 
     for band in range(1, raster.nb_band+1):
         gdal.RegenerateOverview(raster._gdal_dataset.GetRasterBand(band),
