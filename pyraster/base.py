@@ -11,7 +11,7 @@ from pyraster.crs import proj4_from
 from pyraster.io_.files import _copy_to_file
 from pyraster.tools.calculator import _op, _raster_calculation
 from pyraster.tools.conversion import _resample_raster, _padding, _rescale_raster, \
-    _align_raster, _extract_bands, _merge_bands, _read_array
+    _align_raster, _extract_bands, _merge_bands, _read_array, _latlon_to_2d_index, _read_value_at
 from pyraster.tools.exceptions import RasterBaseError
 from pyraster.tools.merge import _merge
 from pyraster.tools.stats import _histogram
@@ -124,6 +124,22 @@ class RasterBase:
 
         """
         return _histogram(self, nb_bins, normalized)
+
+    def latlon_to_2d_index(self, lat, lon):
+        """ Convert lat/lon map coordinates into 2d index
+
+        Parameters
+        ----------
+        lat: float
+            lat coordinates in map units
+        lon: float
+            lon coordinates in map units
+
+        Returns
+        -------
+
+        """
+        return _latlon_to_2d_index(self, lat, lon)
 
     @classmethod
     def merge(cls, rasters, bounds=None, output_format="Gtiff",
@@ -250,6 +266,22 @@ class RasterBase:
 
         """
         return _read_array(self, upper_west, lower_east)
+
+    def read_value_at(self, lat, lon):
+        """ Read value in raster at lat/lon map coordinates
+
+        Parameters
+        ----------
+        lat: float
+            lat coordinates in map units
+        lon: float
+            lon coordinates in map units
+
+        Returns
+        -------
+
+        """
+        return _read_value_at(self, lat, lon)
 
     def resample(self, factor):
         """ Resample raster
