@@ -5,20 +5,22 @@
 More detailed description.
 """
 
-import gdal
 import multiprocessing as mp
 
-from pyraster import FLOAT32
 from pyraster.crs import proj4_from
-from pyraster.io.files import _copy_to_file
+from pyraster.io_.files import _copy_to_file
 from pyraster.tools.calculator import _op, _raster_calculation
 from pyraster.tools.conversion import _resample_raster, _padding, _rescale_raster, \
-    _align_raster, _extract_bands, _merge_bands
+    _align_raster, _extract_bands, _merge_bands, _read_array
 from pyraster.tools.exceptions import RasterBaseError
 from pyraster.tools.merge import _merge
 from pyraster.tools.stats import _histogram
 from pyraster.tools.windows import _windowing
 from pyraster.utils import lazyproperty
+
+import gdal
+
+gdal.UseExceptions()
 
 
 class RasterBase:
@@ -124,7 +126,8 @@ class RasterBase:
         return _histogram(self, nb_bins, normalized)
 
     @classmethod
-    def merge(cls, rasters, bounds=None, output_format="Gtiff", data_type=FLOAT32, no_data=-999):
+    def merge(cls, rasters, bounds=None, output_format="Gtiff",
+              data_type=gdal.GetDataTypeByName('Float32'), no_data=-999):
         """ Merge multiple rasters
 
         Description
@@ -147,7 +150,7 @@ class RasterBase:
         -------
 
         """
-        return _merge(rasters, bounds, output_format, data_type, no_data)
+        return _merge(cls, rasters, bounds, output_format, data_type, no_data)
 
     @classmethod
     def merge_bands(cls, rasters, resolution="highest",
@@ -196,7 +199,8 @@ class RasterBase:
     @classmethod
     def raster_calculation(cls, rasters, fhandle, window_size=1000,
                            gdal_driver=gdal.GetDriverByName("Gtiff"),
-                           data_type=FLOAT32, no_data=-999, **kwargs):
+                           data_type=gdal.GetDataTypeByName('Float32'),
+                           no_data=-999, **kwargs):
         """ Raster expression calculation
 
         Description
@@ -229,6 +233,23 @@ class RasterBase:
         """
         return _raster_calculation(cls, rasters, fhandle, window_size,
                                    gdal_driver, data_type, no_data, **kwargs)
+
+    def read_array(self, upper_west=None, lower_east=None):
+        """ Write raster to numpy array
+
+        Parameters
+        ----------
+        upper_west: tuple[float, float]
+            tuple (lon, lat) of the upper west corner point
+        lower_east: tuple[float, float]
+            tuple (lon, lat) of the lower east corner point
+
+        Returns
+        -------
+        numpy.ndarray
+
+        """
+        return _read_array(self, upper_west, lower_east)
 
     def resample(self, factor):
         """ Resample raster
@@ -285,7 +306,8 @@ class RasterBase:
         """
         return _copy_to_file(self, filename)
 
-    def windowing(self, f_handle, window_size, method, band=None, data_type=FLOAT32,
+    def windowing(self, f_handle, window_size, method, band=None,
+                  data_type=gdal.GetDataTypeByName('Float32'),
                   no_data=None, chunk_size=100000, nb_processes=mp.cpu_count()):
         """ Apply function within sliding/block window
 
