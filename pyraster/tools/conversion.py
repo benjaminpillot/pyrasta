@@ -36,6 +36,16 @@ def _extract_bands(raster, out_file, bands):
     out_ds = None
 
 
+def _latlon_to_2d_index(raster, lat, lon):
+    """ Convert lat/lon map coordinates to 2d index
+
+    """
+    px = int((lon - raster.x_origin) / raster.geo_transform[1])
+    py = int((lat - raster.y_origin) / raster.geo_transform[5])
+
+    return px, py
+
+
 def _merge_bands(raster_class, sources, resolution, gdal_driver, no_data):
     """ Merge multiple bands into one raster
 
@@ -116,6 +126,20 @@ def _read_array(raster, upper_west, lower_east):
         y_size = int((lower_east[1] - upper_west[1]) / raster.geo_transform[5])
 
         return raster._gdal_dataset.ReadAsArray(xoff, yoff, x_size, y_size)
+
+
+def _read_value_at(raster, lat, lon):
+    """ Read value at lat/lon map coordinates
+
+    """
+    xoff = int((lon - raster.x_origin) / raster.geo_transform[1])
+    yoff = int((lat - raster.y_origin) / raster.geo_transform[5])
+
+    value = raster._gdal_dataset.ReadAsArray(xoff, yoff, 1, 1)
+    if value.size > 1:
+        return value
+    else:
+        return value[0, 0]
 
 
 @_return_raster
