@@ -10,13 +10,14 @@ import multiprocessing as mp
 from pyraster.crs import proj4_from
 from pyraster.io_.files import _copy_to_file
 from pyraster.tools.calculator import _op, _raster_calculation
+from pyraster.tools.clip import _clip_raster
 from pyraster.tools.conversion import _resample_raster, _padding, _rescale_raster, \
     _align_raster, _extract_bands, _merge_bands, _read_array, _latlon_to_2d_index, _read_value_at
 from pyraster.tools.exceptions import RasterBaseError
 from pyraster.tools.merge import _merge
 from pyraster.tools.stats import _histogram
 from pyraster.tools.windows import _windowing
-from pyraster.utils import lazyproperty
+from pyraster.utils import lazyproperty, grid
 
 import gdal
 
@@ -93,6 +94,21 @@ class RasterBase:
 
         return _align_raster(self, other)
 
+    def clip(self, bounds, output_format="Gtiff"):
+        """ Clip raster
+
+        Parameters
+        ----------
+        bounds: tuple
+            tuple (x_min, y_min, x_max, y_max) in map units
+        output_format: str
+
+        Returns
+        -------
+
+        """
+        return _clip_raster(self, bounds, output_format)
+
     def extract_bands(self, bands):
         """ Extract bands as multiple rasters
 
@@ -137,6 +153,8 @@ class RasterBase:
 
         Returns
         -------
+        tuple
+            (x, y) index
 
         """
         return _latlon_to_2d_index(self, lat, lon)
@@ -397,6 +415,16 @@ class RasterBase:
     @lazyproperty
     def geo_transform(self):
         return self._gdal_dataset.GetGeoTransform()
+
+    @lazyproperty
+    def latitude(self):
+        return [lat for lat in grid(self.y_origin + self.geo_transform[5]/2,
+                                    self.geo_transform[5], self.y_size)]
+
+    @lazyproperty
+    def longitude(self):
+        return [lon for lon in grid(self.x_origin + self.geo_transform[1]/2,
+                                    self.geo_transform[1], self.x_size)]
 
     @lazyproperty
     def max(self):
