@@ -345,7 +345,7 @@ class RasterBase:
         Parameters
         ----------
         crs: int or str
-            valid CRS
+            valid CRS (Valid EPSG code, valid proj string, etc.)
 
         Returns
         -------
