@@ -7,6 +7,7 @@ More detailed description.
 from collections import Collection
 from itertools import chain, islice
 
+from numba import njit
 from tqdm import tqdm
 
 
@@ -89,6 +90,28 @@ def digitize(value, list_of_values, ascend=True, right=False):
         loc = [value <= v if right else value < v for v in list_of_values]
 
     return loc.index(False) if False in loc else len(list_of_values)
+
+
+@njit()
+def grid(origin, resolution, size):
+    """ Return regular grid vector
+
+    Parameters
+    ----------
+    origin
+    resolution
+    size
+
+    Returns
+    -------
+
+    """
+    origin -= resolution
+
+    for _ in range(size):
+        origin += resolution
+
+        yield origin
 
 
 def lazyproperty(func):
