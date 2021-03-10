@@ -149,8 +149,10 @@ class WindowGenerator:
     @property
     def geo_transform(self):
         if self.method == "block":
-            topleftx, pxsizex, rotx, toplefty, roty, pxsizey = self.raster._gdal_dataset.GetGeoTransform()
-            return topleftx, pxsizex * self.window_size, rotx, toplefty, roty, pxsizey * self.window_size
+            topleftx, pxsizex, rotx, toplefty, roty, pxsizey = \
+                self.raster._gdal_dataset.GetGeoTransform()
+            return topleftx, pxsizex * self.window_size, rotx, \
+                toplefty, roty, pxsizey * self.window_size
         else:
             return self.raster._gdal_dataset.GetGeoTransform()
 
@@ -188,14 +190,16 @@ class WindowGenerator:
     @property
     def x_size(self):
         if self.method == "block":
-            return int(self.raster.x_size / self.window_size) + min(1, self.raster.x_size % self.window_size)
+            return int(self.raster.x_size / self.window_size) + \
+                   min(1, self.raster.x_size % self.window_size)
         else:
             return self.raster.x_size
 
     @property
     def y_size(self):
         if self.method == "block":
-            return int(self.raster.y_size / self.window_size) + min(1, self.raster.y_size % self.window_size)
+            return int(self.raster.y_size / self.window_size) + \
+                   min(1, self.raster.y_size % self.window_size)
         else:
             return self.raster.y_size
 
