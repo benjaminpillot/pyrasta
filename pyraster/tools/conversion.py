@@ -4,11 +4,12 @@
 
 More detailed description.
 """
-import gdal
-
 from pyraster.crs import srs_from
 from pyraster.io_.files import RasterTempFile, VrtTempFile
 from pyraster.tools import _gdal_temp_dataset, _return_raster
+
+import affine
+import gdal
 
 
 @_return_raster
@@ -36,14 +37,15 @@ def _extract_bands(raster, out_file, bands):
     out_ds = None
 
 
-def _latlon_to_2d_index(raster, lat, lon):
-    """ Convert lat/lon map coordinates to 2d index
+def _xy_to_2d_index(raster, x, y):
+    """ Convert x/y map coordinates to 2d index
 
     """
-    px = int((lon - raster.x_origin) / raster.geo_transform[1])
-    py = int((lat - raster.y_origin) / raster.geo_transform[5])
+    forward_transform = affine.Affine.from_gdal(*raster.geo_transform)
+    reverse_transform = ~forward_transform
+    px, py = reverse_transform * (x, y)
 
-    return px, py
+    return int(px), int(py)
 
 
 def _merge_bands(raster_class, sources, resolution, gdal_driver, no_data):
@@ -105,36 +107,42 @@ def _padding(raster, out_file, pad_x, pad_y, pad_value):
     out_ds = None
 
 
-def _project_raster(raster, new_crs):
+@_return_raster
+def _project_raster(raster, out_file, new_crs):
     """ Project raster onto new CRS
 
     """
-    with RasterTempFile(raster._gdal_driver.GetMetadata()['DMD_EXTENSION']) as out_file:
-        gdal.Warp(out_file, raster._gdal_dataset, dstSRS=srs_from(new_crs))
+    gdal.Warp(out_file, raster._gdal_dataset, dstSRS=srs_from(new_crs))
 
 
-def _read_array(raster, upper_west, lower_east):
+def _read_array(raster, bounds):
     """ Read array from raster
 
     """
-    if upper_west is None or lower_east is None:
+    if bounds is None:
         return raster._gdal_dataset.ReadAsArray()
     else:
-        xoff = int((upper_west[0] - raster.x_origin) / raster.geo_transform[1])
-        yoff = int((upper_west[1] - raster.y_origin) / raster.geo_transform[5])
-        x_size = int((lower_east[0] - upper_west[0]) / raster.geo_transform[1])
-        y_size = int((lower_east[1] - upper_west[1]) / raster.geo_transform[5])
+        x_min, y_min, x_max, y_max = bounds
+        forward_transform = affine.Affine.from_gdal(*raster.geo_transform)
+        reverse_transform = ~forward_transform
+        px_min, py_max = reverse_transform * (x_min, y_min)
+        px_max, py_min = reverse_transform * (x_max, y_max)
+        x_size = int(px_max) - int(px_min)
+        y_size = int(py_max) - int(py_min)
 
-        return raster._gdal_dataset.ReadAsArray(xoff, yoff, x_size, y_size)
+        return raster._gdal_dataset.ReadAsArray(px_min,
+                                                py_min,
+                                                x_size,
+                                                y_size)
 
 
-def _read_value_at(raster, lat, lon):
+def _read_value_at(raster, x, y):
     """ Read value at lat/lon map coordinates
 
     """
-    xoff = int((lon - raster.x_origin) / raster.geo_transform[1])
-    yoff = int((lat - raster.y_origin) / raster.geo_transform[5])
-
+    forward_transform = affine.Affine.from_gdal(*raster.geo_transform)
+    reverse_transform = ~forward_transform
+    xoff, yoff = reverse_transform * (x, y)
     value = raster._gdal_dataset.ReadAsArray(xoff, yoff, 1, 1)
     if value.size > 1:
         return value
