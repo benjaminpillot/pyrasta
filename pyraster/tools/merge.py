@@ -4,13 +4,14 @@
 
 More detailed description.
 """
-import gdal
 import numpy as np
 import rasterio
 from pyraster.io_.files import RasterTempFile
 from rasterio import windows
 
 from rasterio.transform import Affine
+
+import gdal
 
 
 def _merge(raster_class, sources, bounds, output_format, data_type, no_data):
@@ -36,7 +37,8 @@ def _merge(raster_class, sources, bounds, output_format, data_type, no_data):
 
     with RasterTempFile(gdal.GetDriverByName(output_format).GetMetadata()['DMD_EXTENSION']) \
             as out_file:
-        gdal.Warp(out_file.path, [src._gdal_dataset for src in sources], outputBounds=bounds,
+        gdal.Warp(out_file.path, [src._gdal_dataset for src in sources],
+                  outputBounds=(dst_w, dst_s, dst_e, dst_n),
                   format=output_format, srcNodata=[src.no_data for src in sources],
                   dstNodata=no_data, outputType=data_type)
 
