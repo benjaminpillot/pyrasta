@@ -5,14 +5,11 @@
 More detailed description.
 """
 
-__author__ = 'Benjamin Pillot'
-__copyright__ = 'Copyright 2020, Benjamin Pillot'
-__email__ = 'benjaminpillot@riseup.net'
-
 from functools import wraps
 
-from pyraster import GTIFF_DRIVER
-from pyraster._io import RasterTempFile
+from pyraster.io_.files import RasterTempFile
+
+import gdal
 
 
 def _return_raster(function):
@@ -27,14 +24,16 @@ def _return_raster(function):
     return return_raster
 
 
-def _gdal_temp_dataset(out_file, gdal_driver, projection, x_size, y_size, nb_band, geo_transform, data_type, no_data):
+def _gdal_temp_dataset(out_file, gdal_driver, projection, x_size, y_size,
+                       nb_band, geo_transform, data_type, no_data):
     """ Create gdal temporary dataset
 
     """
     try:
         out_ds = gdal_driver.Create(out_file, x_size, y_size, nb_band, data_type)
     except RuntimeError:
-        out_ds = GTIFF_DRIVER.Create(out_file, x_size, y_size, nb_band, data_type)
+        out_ds = gdal.GetDriverByName('Gtiff').Create(out_file, x_size,
+                                                      y_size, nb_band, data_type)
 
     out_ds.SetGeoTransform(geo_transform)
     out_ds.SetProjection(projection)
