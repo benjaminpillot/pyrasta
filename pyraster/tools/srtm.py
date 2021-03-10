@@ -78,10 +78,10 @@ def _retrieve_cgiar_srtm_tiles(bounds):
     """
     srtm_lon = range(-180, 185, 5)
     srtm_lat = range(60, -65, -5)
-    x_min, x_max = digitize(bounds[0], srtm_lon, right=True), digitize(bounds[2], srtm_lon,
-                                                                       right=True)
-    y_min, y_max = digitize(bounds[3], srtm_lat, ascend=False), digitize(bounds[1], srtm_lat,
-                                                                         ascend=False)
+    x_min = digitize(bounds[0], srtm_lon, right=False)
+    x_max = digitize(bounds[2], srtm_lon, right=True)
+    y_min = digitize(bounds[3], srtm_lat, right=True, ascend=False)
+    y_max = digitize(bounds[1], srtm_lat, right=False, ascend=False)
 
     list_of_tiles = []
 
