@@ -51,10 +51,14 @@ def _windowing(raster, out_file, function, band, window_size,
     chunk_size = max(min(chunk_size // window_generator.x_size, window_generator.y_size)
                      * window_generator.x_size, window_generator.x_size)
     for win_gen in tqdm(split_into_chunks(window_generator, chunk_size),
-                        total=len(window_generator)//chunk_size + int(len(window_generator) % chunk_size != 0),
+                        total=len(window_generator)//chunk_size +
+                        int(len(window_generator) % chunk_size != 0),
                         desc="Sliding window computation"):
         with mp.Pool(processes=nb_processes) as pool:
-            output = np.asarray(list(pool.map(partial(_set_nan, function=function, no_data=no_data), win_gen,
+            output = np.asarray(list(pool.map(partial(_set_nan,
+                                                      function=function,
+                                                      no_data=no_data),
+                                              win_gen,
                                               chunksize=500)))
 
         output[np.isnan(output)] = no_data
@@ -63,7 +67,8 @@ def _windowing(raster, out_file, function, band, window_size,
         n_rows = len(output) // window_generator.x_size
 
         # Write row to raster
-        out_ds.GetRasterBand(band).WriteArray(np.reshape(output, (n_rows, window_generator.x_size)), 0, y)
+        out_ds.GetRasterBand(band).WriteArray(np.reshape(output, (n_rows,
+                                                                  window_generator.x_size)), 0, y)
 
         # Update row index
         y += n_rows
