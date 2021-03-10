@@ -1,6 +1,6 @@
 from setuptools import setup, find_packages
 
-import pyraster
+import pyrasta
 
 with open("README.md", 'r') as fh:
     long_description = fh.read()
@@ -8,8 +8,8 @@ with open("README.md", 'r') as fh:
 with open("requirements.txt") as req:
     install_req = req.read().splitlines()
 
-setup(name='pyraster',
-      version=pyraster.__version__,
+setup(name='pyrasta',
+      version=pyrasta.__version__,
       description='Some tools for fast and easy raster processing',
       long_description=long_description,
       long_description_content_type="text/markdown",
