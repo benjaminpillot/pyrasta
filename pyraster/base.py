@@ -10,7 +10,7 @@ import multiprocessing as mp
 from pyraster.crs import proj4_from
 from pyraster.io_.files import _copy_to_file
 from pyraster.tools.calculator import _op, _raster_calculation
-from pyraster.tools.clip import _clip_raster
+from pyraster.tools.clip import _clip_raster_by_extent
 from pyraster.tools.conversion import _resample_raster, _padding, _rescale_raster, \
     _align_raster, _extract_bands, _merge_bands, _read_array, _xy_to_2d_index, _read_value_at, \
     _project_raster
@@ -95,19 +95,26 @@ class RasterBase:
 
         return _align_raster(self, other)
 
-    def clip(self, bounds):
+    def clip(self, bounds=None, mask=None, by_extent=True):
         """ Clip raster
 
         Parameters
         ----------
         bounds: tuple
             tuple (x_min, y_min, x_max, y_max) in map units
+        mask:
+            Valid mask layer
+        by_extent: bool
+            if True, clip raster by extent, otherwise use mask layer
 
         Returns
         -------
 
         """
-        return _clip_raster(self, bounds)
+        if by_extent:
+            return _clip_raster_by_extent(self, bounds)
+        else:
+            pass  # TODO: clip raster by mask layer
 
     def extract_bands(self, bands):
         """ Extract bands as multiple rasters
@@ -140,24 +147,6 @@ class RasterBase:
 
         """
         return _histogram(self, nb_bins, normalized)
-
-    def xy_to_2d_index(self, x, y):
-        """ Convert x/y map coordinates into 2d index
-
-        Parameters
-        ----------
-        x: float
-            x coordinates in map units
-        y: float
-            y coordinates in map units
-
-        Returns
-        -------
-        tuple
-            (px, py) index
-
-        """
-        return _xy_to_2d_index(self, x, y)
 
     @classmethod
     def merge(cls, rasters, bounds=None, output_format="Gtiff",
@@ -268,22 +257,20 @@ class RasterBase:
         return _raster_calculation(cls, rasters, fhandle, window_size,
                                    gdal_driver, data_type, no_data, **kwargs)
 
-    def read_array(self, upper_west=None, lower_east=None):
+    def read_array(self, bounds=None):
         """ Write raster to numpy array
 
         Parameters
         ----------
-        upper_west: tuple[float, float]
-            tuple (lon, lat) of the upper west corner point
-        lower_east: tuple[float, float]
-            tuple (lon, lat) of the lower east corner point
+        bounds: tuple
+            tuple as (x_min, y_min, x_max, y_max) in map units
 
         Returns
         -------
         numpy.ndarray
 
         """
-        return _read_array(self, upper_west, lower_east)
+        return _read_array(self, bounds)
 
     def read_value_at(self, x, y):
         """ Read value in raster at x/y map coordinates
@@ -410,6 +397,24 @@ class RasterBase:
 
         return _windowing(self, f_handle, band, window_size, method,
                           data_type, no_data, chunk_size, nb_processes)
+
+    def xy_to_2d_index(self, x, y):
+        """ Convert x/y map coordinates into 2d index
+
+        Parameters
+        ----------
+        x: float
+            x coordinates in map units
+        y: float
+            y coordinates in map units
+
+        Returns
+        -------
+        tuple
+            (px, py) index
+
+        """
+        return _xy_to_2d_index(self, x, y)
 
     @property
     def crs(self):
