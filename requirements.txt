@@ -1,2 +1,5 @@
 gdal>=3.0.2
 numpy>=1.19.2
+numba>=0.52.0
+tqdm>=4.57.0
+affine>=2.3.0
