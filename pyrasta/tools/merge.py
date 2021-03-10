@@ -5,7 +5,7 @@
 More detailed description.
 """
 import numpy as np
-from pyraster.io_.files import RasterTempFile
+from pyrasta.io_.files import RasterTempFile
 
 import gdal
 

@@ -4,11 +4,11 @@
 
 More detailed description.
 """
-from pyraster.io_.files import RasterTempFile
+from pyrasta.io_.files import RasterTempFile
 
 import gdal
 
-from pyraster.tools import _return_raster
+from pyrasta.tools import _return_raster
 
 
 @_return_raster

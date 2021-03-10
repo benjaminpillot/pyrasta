@@ -5,25 +5,25 @@
 More detailed description.
 """
 
-__author__ = 'Benjamin Pillot'
-__copyright__ = 'Copyright 2020, Benjamin Pillot'
-__email__ = 'benjaminpillot@riseup.net'
-
 from functools import wraps
 
 import numpy as np
-from pyraster import INT16
-from pyraster.io import RasterTempFile
-from pyraster.tools import _gdal_temp_dataset
+from pyrasta.io_.files import RasterTempFile
+from pyrasta.tools import _gdal_temp_dataset
 from sklearn.cluster import KMeans
+
+import gdal
 
 
 def return_classification(classification):
     @wraps(classification)
     def _return_classification(raster, nb_classes, *args, **kwargs):
         with RasterTempFile(raster._gdal_driver.GetMetadata()['DMD_EXTENSION']) as out_file:
-            out_ds = _gdal_temp_dataset(out_file.path, raster._gdal_driver, raster._gdal_dataset.GetProjection(),
-                                        raster.x_size, raster.y_size, 1, raster.geo_transform, INT16, no_data=-999)
+            out_ds = _gdal_temp_dataset(out_file.path, raster._gdal_driver,
+                                        raster._gdal_dataset.GetProjection(),
+                                        raster.x_size, raster.y_size, 1,
+                                        raster.geo_transform, gdal.GetDataTypeByName('Int16'),
+                                        no_data=-999)
             labels = classification(raster, nb_classes, out_ds, *args, **kwargs)
 
             # Close dataset

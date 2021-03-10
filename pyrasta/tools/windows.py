@@ -12,9 +12,9 @@ from tqdm import tqdm
 import multiprocessing as mp
 import numpy as np
 
-from pyraster.tools import _gdal_temp_dataset, _return_raster
-from pyraster.tools.exceptions import WindowGeneratorError
-from pyraster.utils import split_into_chunks, check_string, check_type
+from pyrasta.tools import _gdal_temp_dataset, _return_raster
+from pyrasta.tools.exceptions import WindowGeneratorError
+from pyrasta.utils import split_into_chunks, check_string, check_type
 
 
 def _set_nan(array, function, no_data):

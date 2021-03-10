@@ -7,18 +7,18 @@ More detailed description.
 
 import multiprocessing as mp
 
-from pyraster.crs import proj4_from
-from pyraster.io_.files import _copy_to_file
-from pyraster.tools.calculator import _op, _raster_calculation
-from pyraster.tools.clip import _clip_raster_by_extent
-from pyraster.tools.conversion import _resample_raster, _padding, _rescale_raster, \
+from pyrasta.crs import proj4_from
+from pyrasta.io_.files import _copy_to_file
+from pyrasta.tools.calculator import _op, _raster_calculation
+from pyrasta.tools.clip import _clip_raster_by_extent
+from pyrasta.tools.conversion import _resample_raster, _padding, _rescale_raster, \
     _align_raster, _extract_bands, _merge_bands, _read_array, _xy_to_2d_index, _read_value_at, \
     _project_raster
-from pyraster.tools.exceptions import RasterBaseError
-from pyraster.tools.merge import _merge
-from pyraster.tools.stats import _histogram
-from pyraster.tools.windows import _windowing
-from pyraster.utils import lazyproperty, grid
+from pyrasta.tools.exceptions import RasterBaseError
+from pyrasta.tools.merge import _merge
+from pyrasta.tools.stats import _histogram
+from pyrasta.tools.windows import _windowing
+from pyrasta.utils import lazyproperty, grid
 
 import gdal
 

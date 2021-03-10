@@ -7,7 +7,7 @@ More detailed description.
 
 from functools import wraps
 
-from pyraster.io_.files import RasterTempFile
+from pyrasta.io_.files import RasterTempFile
 
 import gdal
 

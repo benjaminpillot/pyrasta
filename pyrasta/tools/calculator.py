@@ -7,9 +7,9 @@ More detailed description.
 
 import numpy as np
 
-from pyraster.io_.files import RasterTempFile
-from pyraster.tools import _gdal_temp_dataset, _return_raster
-from pyraster.tools.windows import get_block_windows
+from pyrasta.io_.files import RasterTempFile
+from pyrasta.tools import _gdal_temp_dataset, _return_raster
+from pyrasta.tools.windows import get_block_windows
 from tqdm import tqdm
 
 import gdal

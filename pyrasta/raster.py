@@ -5,7 +5,7 @@
 More detailed description.
 """
 
-from pyraster.base import RasterBase
+from pyrasta.base import RasterBase
 
 
 class Raster(RasterBase):

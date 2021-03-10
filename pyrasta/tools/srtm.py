@@ -12,8 +12,8 @@ import os
 
 from tqdm import tqdm
 
-from pyraster.raster import DigitalElevationModel
-from pyraster.utils import digitize, TqdmUpTo
+from pyrasta.raster import DigitalElevationModel
+from pyrasta.utils import digitize, TqdmUpTo
 
 import gdal
 

@@ -4,9 +4,9 @@
 
 More detailed description.
 """
-from pyraster.crs import srs_from
-from pyraster.io_.files import RasterTempFile, VrtTempFile
-from pyraster.tools import _gdal_temp_dataset, _return_raster
+from pyrasta.crs import srs_from
+from pyrasta.io_.files import RasterTempFile, VrtTempFile
+from pyrasta.tools import _gdal_temp_dataset, _return_raster
 
 import affine
 import gdal
