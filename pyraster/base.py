@@ -12,7 +12,8 @@ from pyraster.io_.files import _copy_to_file
 from pyraster.tools.calculator import _op, _raster_calculation
 from pyraster.tools.clip import _clip_raster
 from pyraster.tools.conversion import _resample_raster, _padding, _rescale_raster, \
-    _align_raster, _extract_bands, _merge_bands, _read_array, _latlon_to_2d_index, _read_value_at
+    _align_raster, _extract_bands, _merge_bands, _read_array, _xy_to_2d_index, _read_value_at, \
+    _project_raster
 from pyraster.tools.exceptions import RasterBaseError
 from pyraster.tools.merge import _merge
 from pyraster.tools.stats import _histogram
@@ -94,20 +95,19 @@ class RasterBase:
 
         return _align_raster(self, other)
 
-    def clip(self, bounds, output_format="Gtiff"):
+    def clip(self, bounds):
         """ Clip raster
 
         Parameters
         ----------
         bounds: tuple
             tuple (x_min, y_min, x_max, y_max) in map units
-        output_format: str
 
         Returns
         -------
 
         """
-        return _clip_raster(self, bounds, output_format)
+        return _clip_raster(self, bounds)
 
     def extract_bands(self, bands):
         """ Extract bands as multiple rasters
@@ -141,23 +141,23 @@ class RasterBase:
         """
         return _histogram(self, nb_bins, normalized)
 
-    def latlon_to_2d_index(self, lat, lon):
-        """ Convert lat/lon map coordinates into 2d index
+    def xy_to_2d_index(self, x, y):
+        """ Convert x/y map coordinates into 2d index
 
         Parameters
         ----------
-        lat: float
-            lat coordinates in map units
-        lon: float
-            lon coordinates in map units
+        x: float
+            x coordinates in map units
+        y: float
+            y coordinates in map units
 
         Returns
         -------
         tuple
-            (x, y) index
+            (px, py) index
 
         """
-        return _latlon_to_2d_index(self, lat, lon)
+        return _xy_to_2d_index(self, x, y)
 
     @classmethod
     def merge(cls, rasters, bounds=None, output_format="Gtiff",
@@ -285,21 +285,21 @@ class RasterBase:
         """
         return _read_array(self, upper_west, lower_east)
 
-    def read_value_at(self, lat, lon):
-        """ Read value in raster at lat/lon map coordinates
+    def read_value_at(self, x, y):
+        """ Read value in raster at x/y map coordinates
 
         Parameters
         ----------
-        lat: float
+        x: float
             lat coordinates in map units
-        lon: float
+        y: float
             lon coordinates in map units
 
         Returns
         -------
 
         """
-        return _read_value_at(self, lat, lon)
+        return _read_value_at(self, x, y)
 
     def resample(self, factor):
         """ Resample raster
@@ -338,6 +338,20 @@ class RasterBase:
         ------
         """
         return _rescale_raster(self, r_min, r_max)
+
+    def to_crs(self, crs):
+        """ Re-project raster onto new CRS
+
+        Parameters
+        ----------
+        crs: int or str
+            valid CRS
+
+        Returns
+        -------
+
+        """
+        return _project_raster(self, crs)
 
     def to_file(self, filename):
         """ Write raster copy to file
@@ -417,12 +431,12 @@ class RasterBase:
         return self._gdal_dataset.GetGeoTransform()
 
     @lazyproperty
-    def latitude(self):
+    def grid_y(self):
         return [lat for lat in grid(self.y_origin + self.geo_transform[5]/2,
                                     self.geo_transform[5], self.y_size)]
 
     @lazyproperty
-    def longitude(self):
+    def grid_x(self):
         return [lon for lon in grid(self.x_origin + self.geo_transform[1]/2,
                                     self.geo_transform[1], self.x_size)]
 
@@ -459,7 +473,8 @@ class RasterBase:
 
     @lazyproperty
     def no_data(self):
-        # return [self._gdal_dataset.GetRasterBand(band + 1).GetNoDataValue() for band in range(self.nb_band)]
+        # return [self._gdal_dataset.GetRasterBand(band + 1).GetNoDataValue()
+        # for band in range(self.nb_band)]
         return self._gdal_dataset.GetRasterBand(1).GetNoDataValue()
 
     @lazyproperty
