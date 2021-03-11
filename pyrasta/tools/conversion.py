@@ -127,8 +127,8 @@ def _read_array(raster, bounds):
         reverse_transform = ~forward_transform
         px_min, py_max = reverse_transform * (x_min, y_min)
         px_max, py_min = reverse_transform * (x_max, y_max)
-        x_size = int(px_max) - int(px_min)
-        y_size = int(py_max) - int(py_min)
+        x_size = int(px_max - px_min) + 1
+        y_size = int(py_max - py_min) + 1
 
         return raster._gdal_dataset.ReadAsArray(px_min,
                                                 py_min,
