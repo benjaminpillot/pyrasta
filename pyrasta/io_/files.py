@@ -5,7 +5,8 @@
 More detailed description.
 """
 import os
-from tempfile import mkstemp
+import uuid
+from tempfile import mkstemp, gettempdir
 
 
 def _copy_to_file(raster, out_file):
@@ -39,6 +40,21 @@ class TempFile(File):
             os.remove(self.path)
         except FileNotFoundError:
             pass
+
+
+class ShapeTempFile(TempFile):
+
+    def __init__(self):
+        self.name = os.path.join(gettempdir(), str(uuid.uuid4()))
+        super().__init__(self.name + ".shp")
+
+    def __del__(self):
+        super().__del__()
+        for ext in [".shx", ".dbf", ".prj", ".cpg"]:
+            try:
+                os.remove(self.name + ext)
+            except FileNotFoundError:
+                pass
 
 
 class RasterTempFile(TempFile):
