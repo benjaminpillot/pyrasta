@@ -223,7 +223,7 @@ class RasterBase:
     def raster_calculation(cls, rasters, fhandle, window_size=1000,
                            gdal_driver=gdal.GetDriverByName("Gtiff"),
                            data_type=gdal.GetDataTypeByName('Float32'),
-                           no_data=-999, **kwargs):
+                           no_data=-999, showprogressbar=True, **kwargs):
         """ Raster expression calculation
 
         Description
@@ -246,6 +246,8 @@ class RasterBase:
             GDAL data type for output raster
         no_data: int or float
             no data value in resulting raster
+        showprogressbar: bool
+            if True, show progress bar
         kwargs:
             fhandle keyword arguments (if any)
 
@@ -255,7 +257,7 @@ class RasterBase:
             New temporary instance
         """
         return _raster_calculation(cls, rasters, fhandle, window_size,
-                                   gdal_driver, data_type, no_data, **kwargs)
+                                   gdal_driver, data_type, no_data, showprogressbar, **kwargs)
 
     def read_array(self, bounds=None):
         """ Write raster to numpy array
