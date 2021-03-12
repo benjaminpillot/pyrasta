@@ -23,7 +23,7 @@ def _merge(raster_class, sources, bounds, output_format, data_type, no_data):
     """
 
     # Extent of all inputs
-    if bounds:
+    if bounds is not None:
         dst_w, dst_s, dst_e, dst_n = bounds
     else:
         # scan input files
