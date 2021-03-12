@@ -54,7 +54,7 @@ def _op(raster1, out_file, raster2, op_type):
 
 
 def _raster_calculation(raster_class, sources, fhandle, window_size,
-                        gdal_driver, data_type, no_data, **kwargs):
+                        gdal_driver, data_type, no_data, showprogressbar, **kwargs):
     """ Calculate raster expression
 
     """
@@ -68,10 +68,12 @@ def _raster_calculation(raster_class, sources, fhandle, window_size,
 
         is_first_run = True
 
-        for window in tqdm(get_block_windows(window_size, master_raster.x_size,
-                                             master_raster.y_size),
-                           total=length,
-                           desc="Calculate raster expression"):
+        iterator = get_block_windows(window_size, master_raster.x_size,
+                                     master_raster.y_size)
+        if showprogressbar:
+            iterator = tqdm(iterator, total=length, desc="Calculate raster expression")
+
+        for window in iterator:
             list_of_arrays = []
             for src in sources:
                 array = src._gdal_dataset.ReadAsArray(*window).astype("float32")
