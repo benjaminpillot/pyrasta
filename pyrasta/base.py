@@ -95,7 +95,7 @@ class RasterBase:
 
         return _align_raster(self, other)
 
-    def clip(self, bounds=None, mask=None, by_extent=True, all_touched=True):
+    def clip(self, bounds=None, mask=None, all_touched=True):
         """ Clip raster
 
         Parameters
@@ -104,8 +104,6 @@ class RasterBase:
             tuple (x_min, y_min, x_max, y_max) in map units
         mask: geopandas.GeoDataFrame
             Valid mask layer
-        by_extent: bool
-            if True, clip raster by extent, otherwise use mask layer
         all_touched: bool
             if True, all touched pixels within layer boundaries are burnt,
             when clipping raster by mask
@@ -114,9 +112,9 @@ class RasterBase:
         -------
 
         """
-        if by_extent and bounds is not None:
+        if bounds is not None:
             return _clip_raster_by_extent(self, bounds)
-        elif not by_extent and mask is not None:
+        elif mask is not None:
             return _clip_raster_by_mask(self, mask, all_touched)
         else:
             raise ValueError("Either bounds or mask must be set")
