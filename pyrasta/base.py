@@ -10,7 +10,7 @@ import multiprocessing as mp
 from pyrasta.crs import proj4_from
 from pyrasta.io_.files import _copy_to_file
 from pyrasta.tools.calculator import _op, _raster_calculation
-from pyrasta.tools.clip import _clip_raster_by_extent
+from pyrasta.tools.clip import _clip_raster_by_extent, _clip_raster_by_mask
 from pyrasta.tools.conversion import _resample_raster, _padding, _rescale_raster, \
     _align_raster, _extract_bands, _merge_bands, _read_array, _xy_to_2d_index, _read_value_at, \
     _project_raster
@@ -95,26 +95,31 @@ class RasterBase:
 
         return _align_raster(self, other)
 
-    def clip(self, bounds=None, mask=None, by_extent=True):
+    def clip(self, bounds=None, mask=None, by_extent=True, all_touched=True):
         """ Clip raster
 
         Parameters
         ----------
         bounds: tuple
             tuple (x_min, y_min, x_max, y_max) in map units
-        mask:
+        mask: geopandas.GeoDataFrame
             Valid mask layer
         by_extent: bool
             if True, clip raster by extent, otherwise use mask layer
+        all_touched: bool
+            if True, all touched pixels within layer boundaries are burnt,
+            when clipping raster by mask
 
         Returns
         -------
 
         """
-        if by_extent:
+        if by_extent and bounds is not None:
             return _clip_raster_by_extent(self, bounds)
+        elif not by_extent and mask is not None:
+            return _clip_raster_by_mask(self, mask, all_touched)
         else:
-            pass  # TODO: clip raster by mask layer
+            raise ValueError("Either bounds or mask must be set")
 
     def extract_bands(self, bands):
         """ Extract bands as multiple rasters
