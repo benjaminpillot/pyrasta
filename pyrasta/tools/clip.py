@@ -13,6 +13,19 @@ import gdal
 
 @_return_raster
 def _clip_raster_by_extent(raster, out_file, bounds):
+    """ Clip raster by extent
+
+    Parameters
+    ----------
+    raster: pyrasta.raster.RasterBase
+    out_file: pyrasta.io_.files.RasterTempFile
+    bounds: tuple
+        boundaries as (minx, miny, maxx, maxy)
+
+    Returns
+    -------
+
+    """
 
     minx = max(bounds[0], raster.bounds[0])
     miny = max(bounds[1], raster.bounds[1])
@@ -31,6 +44,23 @@ def _clip_raster_by_extent(raster, out_file, bounds):
 
 
 def _clip_raster_by_feature(raster, geodataframe, id_feature, all_touched):
+    """ Clip raster by mask from feature in layer
+
+    Parameters
+    ----------
+    raster: pyrasta.raster.RasterBase
+        raster to clip
+    geodataframe: geopandas.GeoDataFrame
+    id_feature: int
+        feature ID
+    all_touched: bool
+        if True, clip all pixels that are touched, otherwise clip
+        if pixel's centroids are within boundaries
+
+    Returns
+    -------
+
+    """
 
     feature = geodataframe.iloc[[id_feature]].to_crs(raster.crs)
     clip_raster = raster.clip(bounds=feature.bounds.iloc[id_feature].values)
