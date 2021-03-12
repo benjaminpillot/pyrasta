@@ -14,6 +14,7 @@ library is based on gdal to reduce CPU time due to large numpy array imports.
 ## Basic available operations
 - [x] Merging, clipping, re-projecting, padding, resampling, rescaling, windowing
 - [x] Raster calculator to design your own operations
+- [] Fast raster statistics
 - [x] Automatically download and merge SRTM DEM(s) from CGIAR online database
 
 ## Install
@@ -24,4 +25,20 @@ Pip installation should normally take care of everything for you.
 The easiest way to install PyRasta is using ``pip`` in a terminal
 ```
 $ pip install pyrasta
+```
+
+## Examples
+#### Build digital elevation model from CGIAR SRTM site
+```python
+from pyrasta.tools.srtm import from_cgiar_online_database
+bounds = (23, 34, 32, 45)
+dem = from_cgiar_online_database(bounds)
+```
+
+#### Fast clipping of raster by extent or by mask
+```python
+from pyrasta.raster import Raster
+import geopandas
+raster_by_extent = Raster("/path/to/your/raster").clip(bounds=(10, 40, 15, 45))
+raster_by_mask = Raster("/path/to/your/raster").clip(mask=geopandas.GeoDataFrame.from_file("/path/to/your/layer"))
 ```
