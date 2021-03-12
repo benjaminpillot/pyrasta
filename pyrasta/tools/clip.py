@@ -59,4 +59,5 @@ def _clip_raster_by_feature(raster, geodataframe, id_feature, all_touched):
 
     return clip_raster.__class__.raster_calculation([clip_raster,
                                                      clip_raster.__class__(r_file.path)],
-                                                    lambda x, y: x*y)
+                                                    lambda x, y: x*y,
+                                                    showprogressbar=False)
