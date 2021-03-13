@@ -14,9 +14,9 @@ from pyrasta.tools.clip import _clip_raster_by_extent, _clip_raster_by_mask
 from pyrasta.tools.conversion import _resample_raster, _padding, _rescale_raster, \
     _align_raster, _extract_bands, _merge_bands, _read_array, _xy_to_2d_index, _read_value_at, \
     _project_raster
-from pyrasta.tools.exceptions import RasterBaseError
+from pyrasta.exceptions import RasterBaseError
 from pyrasta.tools.merge import _merge
-from pyrasta.tools.stats import _histogram
+from pyrasta.tools.stats import _histogram, _zonal_stats
 from pyrasta.tools.windows import _windowing
 from pyrasta.utils import lazyproperty, grid
 
@@ -95,7 +95,7 @@ class RasterBase:
 
         return _align_raster(self, other)
 
-    def clip(self, bounds=None, mask=None, all_touched=True):
+    def clip(self, bounds=None, mask=None, no_data=-999, all_touched=True):
         """ Clip raster
 
         Parameters
@@ -104,6 +104,8 @@ class RasterBase:
             tuple (x_min, y_min, x_max, y_max) in map units
         mask: geopandas.GeoDataFrame
             Valid mask layer
+        no_data: int or float
+            No data value
         all_touched: bool
             if True, all touched pixels within layer boundaries are burnt,
             when clipping raster by mask
@@ -113,9 +115,9 @@ class RasterBase:
 
         """
         if bounds is not None:
-            return _clip_raster_by_extent(self, bounds)
+            return _clip_raster_by_extent(self, bounds, no_data)
         elif mask is not None:
-            return _clip_raster_by_mask(self, mask, all_touched)
+            return _clip_raster_by_mask(self, mask, no_data, all_touched)
         else:
             raise ValueError("Either bounds or mask must be set")
 
@@ -420,6 +422,28 @@ class RasterBase:
 
         """
         return _xy_to_2d_index(self, x, y)
+
+    def zonal_stats(self, layer, band=1, stats=None, customized_stat=None,
+                    no_data=-999, all_touched=True, show_progressbar=True):
+        """ Compute zonal statistics
+
+        Parameters
+        ----------
+        layer
+        band
+        stats
+        customized_stat
+        no_data
+        all_touched
+        show_progressbar
+
+        Returns
+        -------
+
+        """
+        if stats is not None:
+            return _zonal_stats(self, layer, band, stats, customized_stat,
+                                no_data, all_touched, show_progressbar)
 
     @property
     def crs(self):
