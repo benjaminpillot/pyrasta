@@ -14,10 +14,10 @@ array imports. This is especially useful for basic raster arithmetic operations,
 methods as well as zonal statistics.
 
 ## Basic available operations
-- [x] Merging, clipping, re-projecting, padding, resampling, rescaling, windowing
-- [x] Raster calculator to design your own operations
-- [x] Fast raster zonal statistics
-- [x] Automatically download and merge SRTM DEM(s) from CGIAR online database
+* [x] Merging, clipping, re-projecting, padding, resampling, rescaling, windowing
+* [x] Raster calculator to design your own operations
+* [x] Fast raster zonal statistics
+* [x] Automatically download and merge SRTM DEM(s) from CGIAR online database
 
 ## Install
 Pip installation should normally take care of everything for you.
