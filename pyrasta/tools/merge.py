@@ -4,7 +4,6 @@
 
 More detailed description.
 """
-import numpy as np
 from pyrasta.io_.files import RasterTempFile
 
 import gdal
@@ -38,7 +37,12 @@ def _merge(raster_class, sources, bounds, output_format, data_type, no_data):
                   format=output_format, srcNodata=[src.no_data for src in sources],
                   dstNodata=no_data, outputType=data_type)
 
-    return raster_class(out_file.path)
+    # Be careful with the temp file, make a pointer to be sure
+    # the Python garbage collector does not destroy it !
+    raster = raster_class(out_file.path)
+    raster._temp_file = out_file
+
+    return raster
 
 
 # def _rasterio_merge_modified(sources, out_file, bounds=None, driver="GTiff", precision=7):
