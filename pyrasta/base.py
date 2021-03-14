@@ -16,6 +16,7 @@ from pyrasta.tools.conversion import _resample_raster, _padding, _rescale_raster
     _project_raster
 from pyrasta.exceptions import RasterBaseError
 from pyrasta.tools.merge import _merge
+from pyrasta.tools.rasterize import _rasterize
 from pyrasta.tools.stats import _histogram, _zonal_stats
 from pyrasta.tools.windows import _windowing
 from pyrasta.utils import lazyproperty, grid
@@ -225,6 +226,48 @@ class RasterBase:
         return _padding(self, pad_x, pad_y, value)
 
     @classmethod
+    def rasterize(cls, layer, projection, x_size, y_size, geo_transform,
+                  burn_values=None, attribute=None,
+                  gdal_driver=gdal.GetDriverByName("Gtiff"), nb_band=1,
+                  data_type=gdal.GetDataTypeByName("Float32"), no_data=-999,
+                  all_touched=True):
+        """ Rasterize geographic layer
+
+        Parameters
+        ----------
+        layer: geopandas.GeoDataFrame or gistools.layer.GeoLayer
+            Geographic layer to be rasterized
+        projection: str
+            Projection as a WKT string
+        x_size: int
+            Raster width
+        y_size: int
+            Raster height
+        geo_transform: tuple
+        burn_values: list[float] or list[int], default None
+            List of values to be burnt in each band, excusive with attribute
+        attribute: str, default None
+            Layer's attribute to be used for values to be burnt in raster,
+            excusive with burn_values
+        gdal_driver: osgeo.gdal.Driver, default GeoTiff
+            GDAL driver
+        nb_band: int, default 1
+            Number of bands
+        data_type: int, default "Float32"
+            GDAL data type
+        no_data: int or float, default -999
+            No data value
+        all_touched: bool
+
+        Returns
+        -------
+
+        """
+        return _rasterize(cls, layer, burn_values, attribute, gdal_driver, projection,
+                          x_size, y_size, nb_band, geo_transform, data_type, no_data,
+                          all_touched)
+
+    @classmethod
     def raster_calculation(cls, rasters, fhandle, window_size=1000,
                            gdal_driver=gdal.GetDriverByName("Gtiff"),
                            data_type=gdal.GetDataTypeByName('Float32'),
@@ -264,20 +307,23 @@ class RasterBase:
         return _raster_calculation(cls, rasters, fhandle, window_size,
                                    gdal_driver, data_type, no_data, showprogressbar, **kwargs)
 
-    def read_array(self, bounds=None):
+    def read_array(self, band=None, bounds=None):
         """ Write raster to numpy array
 
         Parameters
         ----------
+        band: int
+            Band number. If None, read all bands into multidimensional array.
         bounds: tuple
-            tuple as (x_min, y_min, x_max, y_max) in map units
+            tuple as (x_min, y_min, x_max, y_max) in map units. If None, read
+            the whole raster into array
 
         Returns
         -------
         numpy.ndarray
 
         """
-        return _read_array(self, bounds)
+        return _read_array(self, band, bounds)
 
     def read_value_at(self, x, y):
         """ Read value in raster at x/y map coordinates
@@ -529,6 +575,13 @@ class RasterBase:
         """
         return [self._gdal_dataset.GetRasterBand(band + 1).ComputeStatistics(False)[3]
                 for band in range(self.nb_band)]
+
+    @lazyproperty
+    def projection(self):
+        """ Get projection as a WKT string
+
+        """
+        return self._gdal_dataset.GetProjection()
 
     @lazyproperty
     def x_origin(self):
