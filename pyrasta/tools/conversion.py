@@ -115,7 +115,7 @@ def _project_raster(raster, out_file, new_crs):
     gdal.Warp(out_file, raster._gdal_dataset, dstSRS=srs_from(new_crs))
 
 
-def _read_array(raster, bounds):
+def _read_array(raster, band, bounds):
     """ Read array from raster
 
     """
@@ -130,10 +130,16 @@ def _read_array(raster, bounds):
         x_size = int(px_max - px_min) + 1
         y_size = int(py_max - py_min) + 1
 
-        return raster._gdal_dataset.ReadAsArray(px_min,
-                                                py_min,
-                                                x_size,
-                                                y_size)
+        if band is not None:
+            return raster._gdal_dataset.GetRasterBand(band).ReadAsArray(int(px_min),
+                                                                        int(py_min),
+                                                                        x_size,
+                                                                        y_size)
+        else:
+            return raster._gdal_dataset.ReadAsArray(int(px_min),
+                                                    int(py_min),
+                                                    x_size,
+                                                    y_size)
 
 
 def _read_value_at(raster, x, y):
