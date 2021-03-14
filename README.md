@@ -50,8 +50,8 @@ raster_by_mask = Raster("/path/to/your/raster").clip(mask=geopandas.GeoDataFrame
 ### Fast Zonal Statistics
 Fast computing of raster zonal statistics within features of a given geographic layer, 
 by loading in memory only the data we need (and not the whole numpy array as it is often 
-the case in other packages) + using multiprocessing. You may use the basic available 
-statistic functions in the package, or use your own customized functions.
+the case in other packages) + using multiprocessing. You may use the basic
+statistic functions already available in the package, or define your own customized functions.
 ```python
 
 from pyrasta.raster import Raster
