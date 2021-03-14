@@ -469,27 +469,46 @@ class RasterBase:
         """
         return _xy_to_2d_index(self, x, y)
 
-    def zonal_stats(self, layer, band=1, stats=None, customized_stat=None,
-                    no_data=-999, all_touched=True, show_progressbar=True):
+    def zonal_stats(self, layer, band=1, stats=None, customized_stats=None,
+                    no_data=-999, all_touched=True, show_progressbar=True,
+                    nb_processes=mp.cpu_count()):
         """ Compute zonal statistics
+
+        Compute statistic among raster values
+        within each feature of given geographic layer
 
         Parameters
         ----------
-        layer
-        band
-        stats
-        customized_stat
-        no_data
-        all_touched
-        show_progressbar
+        layer: geopandas.GeoDataFrame or gistools.layer.GeoLayer
+            Geographic layer
+        band: int
+            Band number
+        stats: list[str]
+            list of valid statistic names
+            "mean", "median", "min", "max", "sum", "std"
+        customized_stats: dict
+            User's own customized statistic functions
+            as {'your_function_name': function}
+        no_data: int or float
+            No data value
+        all_touched: bool
+            Whether to include every raster cell touched by a geometry, or only
+            those having a center point within the polygon.
+        show_progressbar: bool
+            If True, show progress bar status
+        nb_processes: int
+            number of processes for multiprocessing
 
         Returns
         -------
+        dict[list]
+            Dictionary with each statistic as a list corresponding
+            to the values for each feature in layer
 
         """
         if stats is not None:
-            return _zonal_stats(self, layer, band, stats, customized_stat,
-                                no_data, all_touched, show_progressbar)
+            return _zonal_stats(self, layer, band, stats, customized_stats,
+                                no_data, all_touched, show_progressbar, nb_processes)
 
     @property
     def crs(self):
