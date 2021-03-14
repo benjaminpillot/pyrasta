@@ -9,8 +9,9 @@ Some tools for fast and easy raster processing, based on gdal (numpy usage is re
 ## Introduction
 PyRasta is a small Python library which aims at interfacing gdal functions and methods in an easy 
 way, so that users may only focus on the processes they want to apply rather than on the code. The
-library is based on gdal stream to reduce CPU time due to large numpy array imports. This is especially
-useful for basic raster arithmetic operations, sliding window methods as well as zonal statistics.
+library is based on gdal stream and multiprocessing in order to reduce CPU time due to large numpy 
+array imports. This is especially useful for basic raster arithmetic operations, sliding window 
+methods as well as zonal statistics.
 
 ## Basic available operations
 - [x] Merging, clipping, re-projecting, padding, resampling, rescaling, windowing
