@@ -4,3 +4,5 @@
 
 More detailed description.
 """
+
+ESRI_DRIVER = "ESRI Shapefile"
