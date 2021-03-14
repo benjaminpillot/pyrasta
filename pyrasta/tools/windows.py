@@ -13,7 +13,7 @@ import multiprocessing as mp
 import numpy as np
 
 from pyrasta.tools import _gdal_temp_dataset, _return_raster
-from pyrasta.tools.exceptions import WindowGeneratorError
+from pyrasta.exceptions import WindowGeneratorError
 from pyrasta.utils import split_into_chunks, check_string, check_type
 
 
