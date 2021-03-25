@@ -1,7 +1,7 @@
 # PyRasta
 
 [![PyPi license](https://img.shields.io/pypi/l/pyrasta)](https://pypi.python.org/pypi/pyrasta/)
-[![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://framagit.org/benjaminpillot/pyraster/activity)
+[![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://framagit.org/benjaminpillot/pyrasta/activity)
 [![PyPI version fury.io](https://badge.fury.io/py/pyrasta.svg)](https://pypi.python.org/pypi/pyrasta/)
 
 Some tools for fast and easy raster processing, based on gdal (numpy usage is reduced to the minimum).
