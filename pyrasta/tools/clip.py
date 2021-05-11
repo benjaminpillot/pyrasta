@@ -26,6 +26,7 @@ def _clip_raster_by_extent(raster, out_file, bounds, no_data):
 
     Returns
     -------
+    RasterBase
 
     """
 
@@ -61,6 +62,7 @@ def _clip_raster_by_mask(raster, geodataframe, no_data, all_touched):
 
     Returns
     -------
+    RasterBase
 
     """
     clip_raster = raster.clip(bounds=geodataframe.total_bounds)
