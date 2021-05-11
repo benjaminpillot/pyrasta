@@ -77,6 +77,13 @@ def _zonal_stats(raster, layer, band, stats, customized_stat,
     -------
 
     """
+    def zone_gen(ras, bds, bd=1):
+        for boundary in bds:
+            try:
+                yield ras.read_array(bd, boundary)
+            except RuntimeError:
+                yield None
+
     stats_calc = {name: STATISTIC_FUNC[name] for name in stats}
     if customized_stat is not None:
         stats_calc.update(customized_stat)
@@ -87,33 +94,44 @@ def _zonal_stats(raster, layer, band, stats, customized_stat,
                                     attribute="ID", all_touched=all_touched)
 
     bounds = layer.bounds.to_numpy()
-    zone = (raster.read_array(band, boundary) for boundary in bounds)
-    zone_id = (raster_layer.read_array(bounds=boundary) for boundary in bounds)
+    zone = zone_gen(raster, bounds, band)
+    zone_id = zone_gen(raster_layer, bounds)
     multi_gen = tee(zip(layer.index, zone, zone_id), len(stats_calc))
 
-    if show_progressbar:
-        iterator = tqdm(zip(multi_gen, stats_calc.keys()),
-                        desc="Compute zonal statistics",
-                        total=len(stats_calc))
-    else:
-        iterator = zip(multi_gen, stats_calc.keys())
+    iterator = zip(multi_gen, stats_calc.keys())
 
     output = dict()
     with mp.Pool(processes=nb_processes) as pool:
-        for generator, name in iterator:
-            output[name] = list(pool.starmap(partial(_compute_stat_in_feature,
-                                                     no_data=raster.no_data,
-                                                     stat_function=stats_calc[name]),
-                                             generator))
+        if show_progressbar:
+            for generator, name in iterator:
+                output[name] = list(tqdm(pool.starmap(partial(_compute_stat_in_feature,
+                                                              no_data=raster.no_data,
+                                                              stat_function=stats_calc[name]),
+                                                      generator),
+                                         total=len(layer),
+                                         unit_scale=True,
+                                         desc=f"Compute zonal {name}"))
+        else:
+            for generator, name in iterator:
+                output[name] = list(pool.starmap(partial(_compute_stat_in_feature,
+                                                         no_data=raster.no_data,
+                                                         stat_function=stats_calc[name]),
+                                                 generator))
 
     return output
 
 
 def _compute_stat_in_feature(idx, zone, zone_id, no_data, stat_function):
 
-    values = zone[(zone_id == idx) & (zone != no_data)]
+    if zone is not None and zone_id is not None:
+        if np.isnan(no_data):
+            values = zone[(zone_id == idx) & ~np.isnan(zone)]
+        else:
+            values = zone[(zone_id == idx) & (zone != no_data)]
 
-    if values.size != 0:
-        return stat_function(values)
+        if values.size != 0:
+            return stat_function(values)
+        else:
+            return np.nan
     else:
         return np.nan
