@@ -113,6 +113,8 @@ class RasterBase:
 
         Returns
         -------
+        RasterBase:
+            New temporary instance
 
         """
         if bounds is not None:
