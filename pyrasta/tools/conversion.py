@@ -48,7 +48,7 @@ def _xy_to_2d_index(raster, x, y):
     return int(px), int(py)
 
 
-def _merge_bands(raster_class, sources, resolution, gdal_driver, no_data):
+def _merge_bands(raster_class, sources, resolution, gdal_driver, data_type, no_data):
     """ Merge multiple bands into one raster
 
     """
@@ -56,7 +56,7 @@ def _merge_bands(raster_class, sources, resolution, gdal_driver, no_data):
 
         vrt_ds = gdal.BuildVRT(VrtTempFile().path, [src._gdal_dataset for src in sources],
                                resolution=resolution, separate=True, VRTNodata=no_data)
-        out_ds = gdal.Translate(out_file.path, vrt_ds)
+        out_ds = gdal.Translate(out_file.path, vrt_ds, outputType=data_type)
 
     # Close dataset
     out_ds = None
