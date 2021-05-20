@@ -185,7 +185,9 @@ class RasterBase:
 
     @classmethod
     def merge_bands(cls, rasters, resolution="highest",
-                    gdal_driver=gdal.GetDriverByName("Gtiff"), no_data=-999):
+                    gdal_driver=gdal.GetDriverByName("Gtiff"),
+                    data_type=gdal.GetDataTypeByName('Float32'),
+                    no_data=-999):
         """ Create one single raster from multiple bands
 
         Description
@@ -199,10 +201,12 @@ class RasterBase:
         resolution: str
             GDAL resolution option ("highest", "lowest", "average")
         gdal_driver: osgeo.gdal.Driver
+        data_type: int
+            GDAL data type
         no_data: int or float
             no data value in output raster
         """
-        return _merge_bands(cls, rasters, resolution, gdal_driver, no_data)
+        return _merge_bands(cls, rasters, resolution, gdal_driver, data_type, no_data)
 
     def pad_extent(self, pad_x, pad_y, value):
         """ Pad raster extent with given values
