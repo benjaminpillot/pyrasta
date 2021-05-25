@@ -274,10 +274,11 @@ class RasterBase:
                           all_touched)
 
     @classmethod
-    def raster_calculation(cls, rasters, fhandle, window_size=1000,
+    def raster_calculation(cls, rasters, fhandle, window_size=100,
                            gdal_driver=gdal.GetDriverByName("Gtiff"),
                            data_type=gdal.GetDataTypeByName('Float32'),
-                           no_data=-999, showprogressbar=True, **kwargs):
+                           no_data=-999, showprogressbar=True,
+                           nb_processes=mp.cpu_count(), **kwargs):
         """ Raster expression calculation
 
         Description
@@ -302,6 +303,8 @@ class RasterBase:
             no data value in resulting raster
         showprogressbar: bool
             if True, show progress bar
+        nb_processes: int
+            number of processes for multiprocessing
         kwargs:
             fhandle keyword arguments (if any)
 
@@ -311,7 +314,8 @@ class RasterBase:
             New temporary instance
         """
         return _raster_calculation(cls, rasters, fhandle, window_size,
-                                   gdal_driver, data_type, no_data, showprogressbar, **kwargs)
+                                   gdal_driver, data_type, no_data,
+                                   showprogressbar, nb_processes, **kwargs)
 
     def read_array(self, band=None, bounds=None):
         """ Write raster to numpy array
