@@ -11,6 +11,9 @@ from numba import njit
 from tqdm import tqdm
 
 
+MP_CHUNK_SIZE = 1000
+
+
 class TqdmUpTo(tqdm):
     """ Progress bar for url retrieving
 
