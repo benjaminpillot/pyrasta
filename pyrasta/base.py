@@ -6,6 +6,7 @@ More detailed description.
 """
 
 import multiprocessing as mp
+import warnings
 
 from pyrasta.crs import proj4_from
 from pyrasta.io_.files import _copy_to_file
@@ -48,8 +49,11 @@ class RasterBase:
 
         # If NoData not defined, define here
         for band in range(self.nb_band):
-            if self._gdal_dataset.GetRasterBand(band + 1).GetNoDataValue() is None:
-                self._gdal_dataset.GetRasterBand(band + 1).SetNoDataValue(no_data)
+            if no_data is not None:
+                if self._gdal_dataset.GetRasterBand(band + 1).GetNoDataValue() is None:
+                    self._gdal_dataset.GetRasterBand(band + 1).SetNoDataValue(no_data)
+                else:
+                    warnings.warn("No data value is already set, cannot overwrite.")
 
         self._gdal_driver = self._gdal_dataset.GetDriver()
         self._file = src_file
@@ -277,8 +281,7 @@ class RasterBase:
     def raster_calculation(cls, rasters, fhandle, window_size=100,
                            gdal_driver=gdal.GetDriverByName("Gtiff"),
                            data_type=gdal.GetDataTypeByName('Float32'),
-                           no_data=-999, showprogressbar=True,
-                           nb_processes=mp.cpu_count(), **kwargs):
+                           no_data=-999, showprogressbar=True):
         """ Raster expression calculation
 
         Description
@@ -292,7 +295,7 @@ class RasterBase:
         rasters: list or tuple
             collection of RasterBase instances
         fhandle: function
-            expression to calculate
+            expression to calculate (must accept a collection of arrays)
         window_size: int
             size of window/chunk to set in memory during calculation
         gdal_driver: osgeo.gdal.Driver
@@ -303,19 +306,15 @@ class RasterBase:
             no data value in resulting raster
         showprogressbar: bool
             if True, show progress bar
-        nb_processes: int
-            number of processes for multiprocessing
-        kwargs:
-            fhandle keyword arguments (if any)
 
         Returns
         -------
-        RasterBase:
+        RasterBase
             New temporary instance
         """
         return _raster_calculation(cls, rasters, fhandle, window_size,
                                    gdal_driver, data_type, no_data,
-                                   showprogressbar, nb_processes, **kwargs)
+                                   showprogressbar)
 
     def read_array(self, band=None, bounds=None):
         """ Write raster to numpy array
@@ -366,7 +365,7 @@ class RasterBase:
 
         Returns
         -------
-        RasterBase:
+        RasterBase
             New temporary resampled instance
         """
         return _resample_raster(self, factor)
@@ -384,8 +383,8 @@ class RasterBase:
         r_max: int or float
             maximum value of new range
 
-        Return
-        ------
+        Returns
+        -------
         """
         return _rescale_raster(self, r_min, r_max)
 
@@ -448,7 +447,7 @@ class RasterBase:
 
         Return
         ------
-        RasterBase:
+        RasterBase
             New instance
 
         """
