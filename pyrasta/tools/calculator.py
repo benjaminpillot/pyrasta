@@ -5,6 +5,7 @@
 More detailed description.
 """
 
+import multiprocessing as mp
 import numpy as np
 
 from pyrasta.io_.files import RasterTempFile
@@ -54,34 +55,38 @@ def _op(raster1, out_file, raster2, op_type):
 
 
 def _raster_calculation(raster_class, sources, fhandle, window_size,
-                        gdal_driver, data_type, no_data, showprogressbar, **kwargs):
+                        gdal_driver, data_type, no_data, nb_processes):
     """ Calculate raster expression
 
     """
     master_raster = sources[0]
     with RasterTempFile(gdal_driver.GetMetadata()['DMD_EXTENSION']) as out_file:
 
-        length = (master_raster.x_size//window_size +
-                  int(master_raster.x_size % window_size != 0)) * \
-                 (master_raster.y_size//window_size +
-                  int(master_raster.y_size % window_size != 0))
-
         is_first_run = True
+        y = 0
+        pgbar = tqdm(total=master_raster.y_size // window_size + int(master_raster.y_size %
+                                                                     window_size != 0),
+                     desc="Calculate raster expression")
 
-        iterator = get_block_windows(window_size, master_raster.x_size,
-                                     master_raster.y_size)
-        if showprogressbar:
-            iterator = tqdm(iterator, total=length, desc="Calculate raster expression")
+        while y < master_raster.y_size:
 
-        for window in iterator:
-            list_of_arrays = []
+            y_size = min(window_size, master_raster.y_size - y)
+
+            arrays = []
             for src in sources:
-                array = src._gdal_dataset.ReadAsArray(*window).astype("float32")
+                array = src._gdal_dataset.ReadAsArray(0, y, None, y_size).astype("float32")
                 array[array == src.no_data] = np.nan
-                list_of_arrays.append(array)
+                arrays.append(array)
 
-            result = fhandle(*list_of_arrays, **kwargs)
+            window_gen = ([array[w[1]:w[1] + w[3], w[0]:w[0] + w[2]] for array in arrays] for w
+                          in get_block_windows(window_size, master_raster.x_size, y_size))
+
+            with mp.Pool(processes=nb_processes) as pool:
+                result = np.concatenate(list(pool.imap(fhandle, window_gen)), axis=1)
+
             result[np.isnan(result)] = no_data
+
+            pgbar.update(1)
 
             if is_first_run:
                 if result.ndim == 2:
@@ -101,11 +106,13 @@ def _raster_calculation(raster_class, sources, fhandle, window_size,
                 is_first_run = False
 
             if nb_band == 1:
-                out_ds.GetRasterBand(1).WriteArray(result, window[0], window[1])
+                out_ds.GetRasterBand(1).WriteArray(result, 0, y)
             else:
                 for band in range(nb_band):
                     out_ds.GetRasterBand(band + 1).WriteArray(result[band, :, :],
-                                                              window[0], window[1])
+                                                              0, y)
+
+            y += window_size
 
     # Close dataset
     out_ds = None
