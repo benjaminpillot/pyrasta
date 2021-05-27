@@ -14,7 +14,7 @@ import numpy as np
 
 from pyrasta.tools import _gdal_temp_dataset, _return_raster
 from pyrasta.exceptions import WindowGeneratorError
-from pyrasta.utils import split_into_chunks, check_string, check_type
+from pyrasta.utils import split_into_chunks, check_string, check_type, MP_CHUNK_SIZE
 
 
 def _set_nan(array, function, no_data):
@@ -57,9 +57,9 @@ def _windowing(raster, out_file, function, band, window_size,
         with mp.Pool(processes=nb_processes) as pool:
             output = np.asarray(list(pool.map(partial(_set_nan,
                                                       function=function,
-                                                      no_data=no_data),
+                                                      no_data=raster.no_data),
                                               win_gen,
-                                              chunksize=500)))
+                                              chunksize=MP_CHUNK_SIZE)))
 
         output[np.isnan(output)] = no_data
 
@@ -213,8 +213,8 @@ class WindowGenerator:
             elif self.method == "moving":
                 return get_moving_windows(self.window_size, self.raster.x_size, self.raster.y_size)
 
-        return (self.raster._gdal_dataset.GetRasterBand(self.band).ReadAsArray(*window)
-                for window in windows())
+        return (self.raster._gdal_dataset.GetRasterBand(self.band).ReadAsArray(*window).astype(
+            "float32") for window in windows())
         # return (self.image[w[1]:w[1] + w[3], w[0]:w[0] + w[2]] for w in windows())
 
 
