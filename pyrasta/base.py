@@ -281,7 +281,7 @@ class RasterBase:
     def raster_calculation(cls, rasters, fhandle, window_size=100,
                            gdal_driver=gdal.GetDriverByName("Gtiff"),
                            data_type=gdal.GetDataTypeByName('Float32'),
-                           no_data=-999, showprogressbar=True):
+                           no_data=-999, nb_processes=mp.cpu_count()):
         """ Raster expression calculation
 
         Description
@@ -304,8 +304,8 @@ class RasterBase:
             GDAL data type for output raster
         no_data: int or float
             no data value in resulting raster
-        showprogressbar: bool
-            if True, show progress bar
+        nb_processes: int
+            number of processes for multiprocessing pool
 
         Returns
         -------
@@ -313,8 +313,7 @@ class RasterBase:
             New temporary instance
         """
         return _raster_calculation(cls, rasters, fhandle, window_size,
-                                   gdal_driver, data_type, no_data,
-                                   showprogressbar)
+                                   gdal_driver, data_type, no_data, nb_processes)
 
     def read_array(self, band=None, bounds=None):
         """ Write raster to numpy array
