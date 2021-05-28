@@ -10,7 +10,7 @@ import numpy as np
 
 from pyrasta.io_.files import RasterTempFile
 from pyrasta.tools import _gdal_temp_dataset, _return_raster
-from pyrasta.tools.windows import get_block_windows
+from pyrasta.tools.windows import get_block_windows, get_xy_block_windows
 from tqdm import tqdm
 
 import gdal
@@ -55,22 +55,26 @@ def _op(raster1, out_file, raster2, op_type):
 
 
 def _raster_calculation(raster_class, sources, fhandle, window_size,
-                        gdal_driver, data_type, no_data, nb_processes):
+                        gdal_driver, data_type, no_data, nb_processes,
+                        chunksize):
     """ Calculate raster expression
 
     """
+    if not hasattr(window_size, "__getitem__"):
+        window_size = (window_size, window_size)
+
     master_raster = sources[0]
     with RasterTempFile(gdal_driver.GetMetadata()['DMD_EXTENSION']) as out_file:
 
         is_first_run = True
         y = 0
-        pgbar = tqdm(total=master_raster.y_size // window_size + int(master_raster.y_size %
-                                                                     window_size != 0),
+        pgbar = tqdm(total=master_raster.y_size // window_size[1] + int(master_raster.y_size %
+                                                                        window_size[1] != 0),
                      desc="Calculate raster expression")
 
         while y < master_raster.y_size:
 
-            y_size = min(window_size, master_raster.y_size - y)
+            y_size = min(window_size[1], master_raster.y_size - y)
 
             arrays = []
             for src in sources:
@@ -79,10 +83,13 @@ def _raster_calculation(raster_class, sources, fhandle, window_size,
                 arrays.append(array)
 
             window_gen = ([array[w[1]:w[1] + w[3], w[0]:w[0] + w[2]] for array in arrays] for w
-                          in get_block_windows(window_size, master_raster.x_size, y_size))
+                          in get_xy_block_windows(window_size, master_raster.x_size, y_size))
 
             with mp.Pool(processes=nb_processes) as pool:
-                result = np.concatenate(list(pool.imap(fhandle, window_gen)), axis=1)
+                result = np.concatenate(list(pool.imap(fhandle,
+                                                       window_gen,
+                                                       chunksize=chunksize)),
+                                        axis=1)
 
             result[np.isnan(result)] = no_data
 
@@ -112,7 +119,7 @@ def _raster_calculation(raster_class, sources, fhandle, window_size,
                     out_ds.GetRasterBand(band + 1).WriteArray(result[band, :, :],
                                                               0, y)
 
-            y += window_size
+            y += window_size[1]
 
     # Close dataset
     out_ds = None
