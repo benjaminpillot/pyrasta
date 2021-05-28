@@ -281,7 +281,8 @@ class RasterBase:
     def raster_calculation(cls, rasters, fhandle, window_size=100,
                            gdal_driver=gdal.GetDriverByName("Gtiff"),
                            data_type=gdal.GetDataTypeByName('Float32'),
-                           no_data=-999, nb_processes=mp.cpu_count()):
+                           no_data=-999, nb_processes=mp.cpu_count(),
+                           chunksize=1):
         """ Raster expression calculation
 
         Description
@@ -296,7 +297,7 @@ class RasterBase:
             collection of RasterBase instances
         fhandle: function
             expression to calculate (must accept a collection of arrays)
-        window_size: int
+        window_size: int or (int, int)
             size of window/chunk to set in memory during calculation
         gdal_driver: osgeo.gdal.Driver
             GDAL driver (output format)
@@ -306,6 +307,8 @@ class RasterBase:
             no data value in resulting raster
         nb_processes: int
             number of processes for multiprocessing pool
+        chunksize: int
+            chunk size used in map/imap multiprocessing function
 
         Returns
         -------
@@ -313,7 +316,8 @@ class RasterBase:
             New temporary instance
         """
         return _raster_calculation(cls, rasters, fhandle, window_size,
-                                   gdal_driver, data_type, no_data, nb_processes)
+                                   gdal_driver, data_type, no_data,
+                                   nb_processes, chunksize)
 
     def read_array(self, band=None, bounds=None):
         """ Write raster to numpy array
