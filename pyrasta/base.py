@@ -138,6 +138,9 @@ class RasterBase:
         ----------
         bands: list
             list of band numbers
+
+        Returns
+        -------
         """
         return _extract_bands(self, bands)
 
@@ -299,6 +302,8 @@ class RasterBase:
             expression to calculate (must accept a collection of arrays)
         window_size: int or (int, int)
             size of window/chunk to set in memory during calculation
+            * unique value
+            * tuple of 2D coordinates (width, height)
         gdal_driver: osgeo.gdal.Driver
             GDAL driver (output format)
         data_type: int
