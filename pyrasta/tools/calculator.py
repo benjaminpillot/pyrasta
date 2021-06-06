@@ -78,7 +78,7 @@ def _raster_calculation(raster_class, sources, fhandle, window_size,
 
             arrays = []
             for src in sources:
-                array = src._gdal_dataset.ReadAsArray(0, y, None, y_size).astype("float")
+                array = src._gdal_dataset.ReadAsArray(0, y, None, y_size).astype("float32")
                 array[array == src.no_data] = np.nan
                 arrays.append(array)
 
