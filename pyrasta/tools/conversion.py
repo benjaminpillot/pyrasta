@@ -8,6 +8,8 @@ from pyrasta.crs import srs_from
 from pyrasta.io_.files import RasterTempFile, VrtTempFile
 from pyrasta.tools import _gdal_temp_dataset, _return_raster
 
+from osgeo import gdal_array
+
 import affine
 import gdal
 
@@ -26,6 +28,58 @@ def _align_raster(in_raster, out_file, on_raster):
 
     # Close dataset
     out_ds = None
+
+
+def _array_to_raster(raster_class, array, crs, geo_transform,
+                     gdal_driver, no_data):
+    """ Convert array to raster
+
+    Parameters
+    ----------
+    array: numpy.ndarray
+    crs: pyproj.CRS
+    geo_transform: tuple
+    gdal_driver: osgeo.gdal.Driver
+    no_data
+
+    Returns
+    -------
+
+    """
+    if array.ndim == 2:
+        nb_band = 1
+        x_size = array.shape[1]
+        y_size = array.shape[0]
+    else:
+        nb_band = array.shape[0]
+        x_size = array.shape[2]
+        y_size = array.shape[1]
+
+    with RasterTempFile(gdal_driver.GetMetadata()['DMD_EXTENSION']) as out_file:
+
+        out_ds = _gdal_temp_dataset(out_file,
+                                    gdal_driver,
+                                    crs.to_wkt(),
+                                    x_size,
+                                    y_size,
+                                    nb_band,
+                                    geo_transform,
+                                    gdal_array.NumericTypeCodeToGDALTypeCode(array.dtype),
+                                    no_data)
+
+        if nb_band == 1:
+            out_ds.GetRasterBand(nb_band).WriteArray(array)
+        else:
+            for band in range(nb_band):
+                out_ds.GetRasterBand(band + 1).WriteArray(array[band, :, :])
+
+    # Close dataset
+    out_ds = None
+
+    raster = raster_class(out_file.path)
+    raster._temp_file = out_file
+
+    return raster
 
 
 @_return_raster
