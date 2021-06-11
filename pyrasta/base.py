@@ -8,7 +8,7 @@ More detailed description.
 import multiprocessing as mp
 import warnings
 
-from pyrasta.crs import proj4_from
+import pyproj
 from pyrasta.io_.files import _copy_to_file
 from pyrasta.tools.calculator import _op, _raster_calculation
 from pyrasta.tools.clip import _clip_raster_by_extent, _clip_raster_by_mask
@@ -532,7 +532,7 @@ class RasterBase:
         """ Return Coordinate Reference System
 
         """
-        return proj4_from(self._gdal_dataset.GetProjection())
+        return pyproj.CRS(self._gdal_dataset.GetProjection())
 
     @lazyproperty
     def bounds(self):
