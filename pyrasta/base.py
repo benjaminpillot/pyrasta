@@ -14,7 +14,7 @@ from pyrasta.tools.calculator import _op, _raster_calculation
 from pyrasta.tools.clip import _clip_raster_by_extent, _clip_raster_by_mask
 from pyrasta.tools.conversion import _resample_raster, _padding, _rescale_raster, \
     _align_raster, _extract_bands, _merge_bands, _read_array, _xy_to_2d_index, _read_value_at, \
-    _project_raster
+    _project_raster, _array_to_raster
 from pyrasta.exceptions import RasterBaseError
 from pyrasta.tools.merge import _merge
 from pyrasta.tools.rasterize import _rasterize
@@ -143,6 +143,13 @@ class RasterBase:
         -------
         """
         return _extract_bands(self, bands)
+
+    @classmethod
+    def from_array(cls, array, crs, geo_transform,
+                   gdal_driver=gdal.GetDriverByName("Gtiff"),
+                   no_data=-999):
+
+        return _array_to_raster(cls, array, crs, geo_transform, gdal_driver, no_data)
 
     def histogram(self, nb_bins=10, normalized=True):
         """ Compute raster histogram
