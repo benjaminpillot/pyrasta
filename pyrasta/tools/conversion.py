@@ -30,15 +30,16 @@ def _align_raster(in_raster, out_file, on_raster):
     out_ds = None
 
 
-def _array_to_raster(raster_class, array, crs, geo_transform,
+def _array_to_raster(raster_class, array, crs, bounds,
                      gdal_driver, no_data):
-    """ Convert array to raster
+    """ Convert array to (north up) raster
 
     Parameters
     ----------
     array: numpy.ndarray
     crs: pyproj.CRS
-    geo_transform: tuple
+    bounds: tuple
+        Image boundaries as (xmin, ymin, xmax, ymax)
     gdal_driver: osgeo.gdal.Driver
     no_data
 
@@ -55,9 +56,13 @@ def _array_to_raster(raster_class, array, crs, geo_transform,
         x_size = array.shape[2]
         y_size = array.shape[1]
 
+    xmin, ymin, xmax, ymax = bounds
+    geo_transform = (xmin, (xmax - xmin)/x_size, 0,
+                     ymax, 0, -(ymax - ymin)/y_size)
+
     with RasterTempFile(gdal_driver.GetMetadata()['DMD_EXTENSION']) as out_file:
 
-        out_ds = _gdal_temp_dataset(out_file,
+        out_ds = _gdal_temp_dataset(out_file.path,
                                     gdal_driver,
                                     crs.to_wkt(),
                                     x_size,
