@@ -145,11 +145,11 @@ class RasterBase:
         return _extract_bands(self, bands)
 
     @classmethod
-    def from_array(cls, array, crs, geo_transform,
+    def from_array(cls, array, crs, bounds,
                    gdal_driver=gdal.GetDriverByName("Gtiff"),
                    no_data=-999):
 
-        return _array_to_raster(cls, array, crs, geo_transform, gdal_driver, no_data)
+        return _array_to_raster(cls, array, crs, bounds, gdal_driver, no_data)
 
     def histogram(self, nb_bins=10, normalized=True):
         """ Compute raster histogram
