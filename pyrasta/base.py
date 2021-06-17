@@ -16,6 +16,7 @@ from pyrasta.tools.conversion import _resample_raster, _padding, _rescale_raster
     _align_raster, _extract_bands, _merge_bands, _read_array, _xy_to_2d_index, _read_value_at, \
     _project_raster, _array_to_raster
 from pyrasta.exceptions import RasterBaseError
+from pyrasta.tools.mask import _raster_mask
 from pyrasta.tools.merge import _merge
 from pyrasta.tools.rasterize import _rasterize
 from pyrasta.tools.stats import _histogram, _zonal_stats
@@ -169,6 +170,23 @@ class RasterBase:
 
         """
         return _histogram(self, nb_bins, normalized)
+
+    def mask(self, mask, all_touched=True):
+        """ Apply mask to raster
+
+        Parameters
+        ----------
+        mask: geopandas.geodataframe or gistools.layer.GeoLayer
+            Mask layer as a GeoDataFrame or GeoLayer
+        all_touched: bool
+            if True, all touched pixels within layer boundaries are burnt,
+            when clipping raster by mask
+
+        Returns
+        -------
+
+        """
+        return _raster_mask(self, mask, all_touched)
 
     @classmethod
     def merge(cls, rasters, bounds=None, output_format="Gtiff",
