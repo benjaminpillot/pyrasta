@@ -1,2 +1,2 @@
 include requirements.txt README.md requirements.in
-recursive-exclude /pyrasta/algorithms *
+recursive-exclude pyrasta/algorithms *
