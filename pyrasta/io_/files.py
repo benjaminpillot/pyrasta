@@ -42,11 +42,17 @@ class TempFile(File):
             pass
 
 
-class ShapeTempFile(TempFile):
+class NamedTempFile(TempFile):
+
+    def __init__(self, extension):
+        self.name = os.path.join(gettempdir(), str(uuid.uuid4()))
+        super().__init__(self.name + "." + extension)
+
+
+class ShapeTempFile(NamedTempFile):
 
     def __init__(self):
-        self.name = os.path.join(gettempdir(), str(uuid.uuid4()))
-        super().__init__(self.name + ".shp")
+        super().__init__("shp")
 
     def __del__(self):
         super().__del__()
