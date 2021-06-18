@@ -25,6 +25,9 @@ from pyrasta.tools.srtm import from_cgiar_online_database
 from pyrasta.tools.stats import _zonal_stats
 
 dem = DigitalElevationModel("/home/benjamin/Documents/PRO/PRODUITS/TESTS/dem_ci.tif")
+test = dem.to_crs(32630).slope("degree")
+test.to_file("/home/benjamin/dem_slope_ci.tif")
+
 country = PolygonLayer.from_gpd(ox.geocode_to_gdf(
     dict(country="Cote d'Ivoire",
          admin_level=2,
