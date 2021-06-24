@@ -21,7 +21,7 @@ from pyrasta.tools.merge import _merge
 from pyrasta.tools.rasterize import _rasterize
 from pyrasta.tools.stats import _histogram, _zonal_stats
 from pyrasta.tools.windows import _windowing
-from pyrasta.utils import lazyproperty, grid
+from pyrasta.utils import lazyproperty, grid, MP_CHUNK_SIZE
 
 import gdal
 
@@ -310,7 +310,7 @@ class RasterBase:
                            gdal_driver=gdal.GetDriverByName("Gtiff"),
                            data_type=gdal.GetDataTypeByName('Float32'),
                            no_data=-999, nb_processes=mp.cpu_count(),
-                           chunksize=1):
+                           chunksize=MP_CHUNK_SIZE):
         """ Raster expression calculation
 
         Description
