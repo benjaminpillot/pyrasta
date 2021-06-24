@@ -74,37 +74,16 @@ def _raster_calculation(raster_class, sources, fhandle, window_size,
 
         is_first_run = True
         y = 0
-        # pgbar = tqdm(total=master_raster.y_size // window_size[1] + int(master_raster.y_size %
-        #                                                                 window_size[1] != 0),
-        #              desc="Calculate raster expression")
 
         for win_gen in tqdm(split_into_chunks(window_gen, width),
                             total=height,
                             desc="Calculate raster expression"):
-        # while y < master_raster.y_size:
-
-            # y_size = min(window_size[1], master_raster.y_size - y)
-
-            # arrays = []
-            # for src in sources:
-            #     array = src._gdal_dataset.ReadAsArray(0, y, None, y_size).astype("float32")
-            #     array[array == src.no_data] = np.nan
-            #     arrays.append(array)
-
-            # window_gen = ([array[w[1]:w[1] + w[3], w[0]:w[0] + w[2]] for array in arrays] for w
-            #               in get_xy_block_windows(window_size, master_raster.x_size, y_size))
-            # window_gen = ([src._gdal_dataset.ReadAsArray(*w) for src in sources] for w
-            #               in get_xy_block_windows(window_size, master_raster.x_size, y_size))
 
             with mp.Pool(processes=nb_processes) as pool:
                 result = np.concatenate(list(pool.map(fhandle,
                                                       win_gen,
                                                       chunksize=chunksize)),
                                         axis=1)
-
-            # result[np.isnan(result)] = no_data
-
-            # pgbar.update(1)
 
             if is_first_run:
                 if result.ndim == 2:
