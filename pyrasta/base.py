@@ -171,22 +171,37 @@ class RasterBase:
         """
         return _histogram(self, nb_bins, normalized)
 
-    def mask(self, mask, all_touched=True):
+    def mask(self, mask, gdal_driver=gdal.GetDriverByName("Gtiff"),
+             data_type=gdal.GetDataTypeByName('Float32'),
+             all_touched=True, no_data=-999, window_size=100,
+             nb_processes=mp.cpu_count(), chunksize=MP_CHUNK_SIZE):
         """ Apply mask to raster
 
         Parameters
         ----------
         mask: geopandas.geodataframe or gistools.layer.GeoLayer
             Mask layer as a GeoDataFrame or GeoLayer
+        gdal_driver: osgeo.gdal.Driver
+            Driver used to write data to file
+        data_type: int
+            GDAL data type
         all_touched: bool
             if True, all touched pixels within layer boundaries are burnt,
             when clipping raster by mask
+        no_data: int or float
+            output no data value in masked raster
+        window_size: int or list[int, int]
+            Size of window for raster calculation
+        nb_processes: int
+            Number of processes for multiprocessing
+        chunksize: int
+            chunk size used in imap multiprocessing function
 
         Returns
         -------
 
         """
-        return _raster_mask(self, mask, all_touched)
+        return _raster_mask(self, mask, gdal_driver, data_type, no_data, all_touched)
 
     @classmethod
     def merge(cls, rasters, bounds=None, output_format="Gtiff",
@@ -310,7 +325,8 @@ class RasterBase:
                            gdal_driver=gdal.GetDriverByName("Gtiff"),
                            data_type=gdal.GetDataTypeByName('Float32'),
                            no_data=-999, nb_processes=mp.cpu_count(),
-                           chunksize=MP_CHUNK_SIZE):
+                           chunksize=MP_CHUNK_SIZE,
+                           description="Calculate raster expression"):
         """ Raster expression calculation
 
         Description
@@ -339,6 +355,8 @@ class RasterBase:
             number of processes for multiprocessing pool
         chunksize: int
             chunk size used in map/imap multiprocessing function
+        description: str
+            Progress bar description
 
         Returns
         -------
@@ -347,7 +365,7 @@ class RasterBase:
         """
         return _raster_calculation(cls, rasters, fhandle, window_size,
                                    gdal_driver, data_type, no_data,
-                                   nb_processes, chunksize)
+                                   nb_processes, chunksize, description)
 
     def read_array(self, band=None, bounds=None):
         """ Write raster to numpy array
@@ -612,10 +630,8 @@ class RasterBase:
         """
         return self._gdal_dataset.RasterCount
 
-    @lazyproperty
+    @property
     def no_data(self):
-        # return [self._gdal_dataset.GetRasterBand(band + 1).GetNoDataValue()
-        # for band in range(self.nb_band)]
         return self._gdal_dataset.GetRasterBand(1).GetNoDataValue()
 
     @lazyproperty
