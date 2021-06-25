@@ -20,7 +20,8 @@ def _mask(arrays, no_data):
     return src
 
 
-def _raster_mask(raster, geodataframe, driver, output_type, no_data, all_touched):
+def _raster_mask(raster, geodataframe, driver, output_type, no_data, all_touched,
+                 window_size, nb_processes, chunksize):
     """ Apply mask into raster
 
     """
@@ -33,11 +34,14 @@ def _raster_mask(raster, geodataframe, driver, output_type, no_data, all_touched
                                       all_touched=all_touched)
 
     return raster.__class__.raster_calculation([raster, mask],
-                                               partial(_mask, no_data=-1),
+                                               partial(_mask, no_data=no_data),
                                                gdal_driver=driver,
                                                data_type=output_type,
                                                no_data=no_data,
-                                               description="Compute mask")
+                                               description="Compute mask",
+                                               window_size=window_size,
+                                               nb_processes=nb_processes,
+                                               chunksize=chunksize)
 
 
     # with ShapeTempFile() as shp_file, \
