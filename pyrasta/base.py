@@ -201,7 +201,9 @@ class RasterBase:
         -------
 
         """
-        return _raster_mask(self, mask, gdal_driver, data_type, no_data, all_touched)
+        return _raster_mask(self, mask, gdal_driver, data_type,
+                            no_data, all_touched, window_size,
+                            nb_processes, chunksize)
 
     @classmethod
     def merge(cls, rasters, bounds=None, output_format="Gtiff",
