@@ -10,12 +10,13 @@ import numpy as np
 
 from pyrasta.io_.files import RasterTempFile
 from pyrasta.tools import _gdal_temp_dataset, _return_raster
-from pyrasta.tools.mapping import GDAL_TO_NUMPY
 from pyrasta.tools.windows import get_block_windows, get_xy_block_windows
-from pyrasta.utils import MP_CHUNK_SIZE, split_into_chunks
+from pyrasta.utils import split_into_chunks
 from tqdm import tqdm
 
 import gdal
+
+OP_WINDOW_SIZE = 1000
 
 
 @_return_raster
@@ -30,7 +31,7 @@ def _op(raster1, out_file, raster2, op_type):
 
     for band in range(1, raster1.nb_band + 1):
 
-        for window in get_block_windows(1000, raster1.x_size, raster1.y_size):
+        for window in get_block_windows(OP_WINDOW_SIZE, raster1.x_size, raster1.y_size):
             array1 = raster1._gdal_dataset.GetRasterBand(
                 band).ReadAsArray(*window).astype("float32")
             try:
@@ -58,7 +59,7 @@ def _op(raster1, out_file, raster2, op_type):
 
 def _raster_calculation(raster_class, sources, fhandle, window_size,
                         gdal_driver, data_type, no_data, nb_processes,
-                        chunksize, description):
+                        chunksize):
     """ Calculate raster expression
 
     """
@@ -66,14 +67,10 @@ def _raster_calculation(raster_class, sources, fhandle, window_size,
         window_size = (window_size, window_size)
 
     master_raster = sources[0]
-    window_gen = ([src._gdal_dataset.ReadAsArray(*w).astype(GDAL_TO_NUMPY[data_type])
-                   for src in sources] for w in get_xy_block_windows(window_size,
-                                                                     master_raster.x_size,
-                                                                     master_raster.y_size))
-    width = int(master_raster.x_size /
-                window_size[0]) + min(1, master_raster.x_size % window_size[0])
-    height = int(master_raster.y_size /
-                 window_size[1]) + min(1, master_raster.y_size % window_size[1])
+    window_gen = ([src._gdal_dataset.ReadAsArray(*w) for src in sources] for w
+                  in get_xy_block_windows(window_size, master_raster.x_size, master_raster.y_size))
+    width = int(master_raster.x_size / window_size[0]) + min(1, master_raster.x_size % window_size[0])
+    height = int(master_raster.y_size / window_size[1]) + min(1, master_raster.y_size % window_size[1])
 
     with RasterTempFile(gdal_driver.GetMetadata()['DMD_EXTENSION']) as out_file:
 
@@ -82,13 +79,14 @@ def _raster_calculation(raster_class, sources, fhandle, window_size,
 
         for win_gen in tqdm(split_into_chunks(window_gen, width),
                             total=height,
-                            desc=description):
+                            desc="Calculate raster expression"):
 
             with mp.Pool(processes=nb_processes) as pool:
-                result = np.concatenate(list(pool.imap(fhandle,
-                                                       win_gen,
-                                                       chunksize=chunksize)),
-                                        axis=1)
+                list_of_arrays = list(pool.map(fhandle,
+                                               win_gen,
+                                               chunksize=chunksize))
+
+            result = np.concatenate(list_of_arrays, axis=list_of_arrays[0].ndim - 1)
 
             if is_first_run:
                 if result.ndim == 2:

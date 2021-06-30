@@ -5,7 +5,6 @@
 More detailed description.
 """
 
-__version__ = '1.2.7'
+__version__ = '1.2.8'
 __author__ = 'Benjamin Pillot'
-__copyright__ = 'Copyright 2020, Benjamin Pillot'
 __email__ = 'benjaminpillot@riseup.net'

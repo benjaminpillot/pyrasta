@@ -29,7 +29,6 @@ The easiest way to install PyRasta is by using ``pip`` in a terminal
 $ pip install pyrasta
 ```
 
-
 ## Examples
 
 ### Build digital elevation model from CGIAR SRTM site
@@ -61,3 +60,6 @@ rstats = Raster("/path/to/your/raster").zonal_stats(geopandas.GeoDataFrame.from_
                                                     customized_stats={"my_mean": my_mean})
 
 ```
+
+## Author
+Benjamin Pillot
