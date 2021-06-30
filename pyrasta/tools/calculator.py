@@ -82,10 +82,11 @@ def _raster_calculation(raster_class, sources, fhandle, window_size,
                             desc="Calculate raster expression"):
 
             with mp.Pool(processes=nb_processes) as pool:
-                result = np.concatenate(list(pool.map(fhandle,
-                                                      win_gen,
-                                                      chunksize=chunksize)),
-                                        axis=1)
+                list_of_arrays = list(pool.map(fhandle,
+                                               win_gen,
+                                               chunksize=chunksize))
+
+            result = np.concatenate(list_of_arrays, axis=list_of_arrays[0].ndim - 1)
 
             if is_first_run:
                 if result.ndim == 2:
