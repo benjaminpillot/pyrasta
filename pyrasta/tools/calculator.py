@@ -10,6 +10,7 @@ import numpy as np
 
 from pyrasta.io_.files import RasterTempFile
 from pyrasta.tools import _gdal_temp_dataset, _return_raster
+from pyrasta.tools.mapping import GDAL_TO_NUMPY
 from pyrasta.tools.windows import get_block_windows, get_xy_block_windows
 from pyrasta.utils import split_into_chunks
 from tqdm import tqdm
@@ -59,7 +60,7 @@ def _op(raster1, out_file, raster2, op_type):
 
 def _raster_calculation(raster_class, sources, fhandle, window_size,
                         gdal_driver, data_type, no_data, nb_processes,
-                        chunksize):
+                        chunksize, description):
     """ Calculate raster expression
 
     """
@@ -67,10 +68,14 @@ def _raster_calculation(raster_class, sources, fhandle, window_size,
         window_size = (window_size, window_size)
 
     master_raster = sources[0]
-    window_gen = ([src._gdal_dataset.ReadAsArray(*w) for src in sources] for w
-                  in get_xy_block_windows(window_size, master_raster.x_size, master_raster.y_size))
-    width = int(master_raster.x_size / window_size[0]) + min(1, master_raster.x_size % window_size[0])
-    height = int(master_raster.y_size / window_size[1]) + min(1, master_raster.y_size % window_size[1])
+    window_gen = ([src._gdal_dataset.ReadAsArray(*w).astype(GDAL_TO_NUMPY[data_type]) for src in
+                   sources] for w in get_xy_block_windows(window_size,
+                                                          master_raster.x_size,
+                                                          master_raster.y_size))
+    width = int(master_raster.x_size /
+                window_size[0]) + min(1, master_raster.x_size % window_size[0])
+    height = int(master_raster.y_size /
+                 window_size[1]) + min(1, master_raster.y_size % window_size[1])
 
     with RasterTempFile(gdal_driver.GetMetadata()['DMD_EXTENSION']) as out_file:
 
@@ -79,7 +84,7 @@ def _raster_calculation(raster_class, sources, fhandle, window_size,
 
         for win_gen in tqdm(split_into_chunks(window_gen, width),
                             total=height,
-                            desc="Calculate raster expression"):
+                            desc=description):
 
             with mp.Pool(processes=nb_processes) as pool:
                 list_of_arrays = list(pool.map(fhandle,
