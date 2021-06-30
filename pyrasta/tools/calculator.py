@@ -11,7 +11,7 @@ import numpy as np
 from pyrasta.io_.files import RasterTempFile
 from pyrasta.tools import _gdal_temp_dataset, _return_raster
 from pyrasta.tools.windows import get_block_windows, get_xy_block_windows
-from pyrasta.utils import MP_CHUNK_SIZE, split_into_chunks
+from pyrasta.utils import split_into_chunks
 from tqdm import tqdm
 
 import gdal
