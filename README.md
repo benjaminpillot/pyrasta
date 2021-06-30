@@ -6,9 +6,6 @@
 
 Some tools for fast and easy raster processing, based on gdal (numpy usage is reduced to the minimum).
 
-## Authors
-Benjamin Pillot © 2021
-
 ## Introduction
 PyRasta is a small Python library which aims at interfacing gdal functions and methods in an easy 
 way, so that users may only focus on the processes they want to apply rather than on the code. The
@@ -32,6 +29,8 @@ The easiest way to install PyRasta is by using ``pip`` in a terminal
 $ pip install pyrasta
 ```
 
+## Authors
+Benjamin Pillot
 
 ## Examples
 
