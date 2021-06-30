@@ -16,6 +16,8 @@ from tqdm import tqdm
 
 import gdal
 
+OP_WINDOW_SIZE = 1000
+
 
 @_return_raster
 def _op(raster1, out_file, raster2, op_type):
@@ -29,7 +31,7 @@ def _op(raster1, out_file, raster2, op_type):
 
     for band in range(1, raster1.nb_band + 1):
 
-        for window in get_block_windows(1000, raster1.x_size, raster1.y_size):
+        for window in get_block_windows(OP_WINDOW_SIZE, raster1.x_size, raster1.y_size):
             array1 = raster1._gdal_dataset.GetRasterBand(
                 band).ReadAsArray(*window).astype("float32")
             try:
