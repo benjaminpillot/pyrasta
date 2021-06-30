@@ -61,5 +61,5 @@ rstats = Raster("/path/to/your/raster").zonal_stats(geopandas.GeoDataFrame.from_
 
 ```
 
-## Authors
+## Author
 Benjamin Pillot
