@@ -173,8 +173,7 @@ class RasterBase:
 
     def mask(self, mask, gdal_driver=gdal.GetDriverByName("Gtiff"),
              data_type=gdal.GetDataTypeByName('Float32'),
-             all_touched=True, no_data=-999, window_size=100,
-             nb_processes=mp.cpu_count(), chunksize=MP_CHUNK_SIZE):
+             all_touched=True, no_data=-999, window_size=500):
         """ Apply mask to raster
 
         Parameters
@@ -192,18 +191,13 @@ class RasterBase:
             output no data value in masked raster
         window_size: int or list[int, int]
             Size of window for raster calculation
-        nb_processes: int
-            Number of processes for multiprocessing
-        chunksize: int
-            chunk size used in imap multiprocessing function
 
         Returns
         -------
 
         """
         return _raster_mask(self, mask, gdal_driver, data_type,
-                            no_data, all_touched, window_size,
-                            nb_processes, chunksize)
+                            no_data, all_touched, window_size)
 
     @classmethod
     def merge(cls, rasters, bounds=None, output_format="Gtiff",
