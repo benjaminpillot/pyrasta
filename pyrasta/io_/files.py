@@ -14,8 +14,9 @@ def _copy_to_file(raster, out_file):
 
     """
     try:
-        out_ds = raster._gdal_driver.CreateCopy(out_file, raster._gdal_dataset, strict=0)
-        out_ds = None
+        raster._gdal_driver.CopyFiles(out_file, raster._file)
+        # out_ds = raster._gdal_driver.CreateCopy(out_file, raster._gdal_dataset, strict=0)
+        # out_ds = None
         return 0
     except RuntimeError:
         return 1
