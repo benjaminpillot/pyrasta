@@ -5,28 +5,32 @@
 More detailed description.
 """
 from pyrasta.io_ import ESRI_DRIVER
-from pyrasta.io_.files import ShapeTempFile, RasterTempFile
-from pyrasta.tools import _gdal_temp_dataset
+from pyrasta.io_.files import ShapeTempFile
+from pyrasta.tools import _gdal_temp_dataset, _return_raster
 
 import gdal
 
 
-def _rasterize(raster_class, geodataframe, burn_values, attribute,
-               gdal_driver, projection, x_size, y_size, nb_band,
-               geo_transform, data_type, no_data, all_touched):
+@_return_raster
+def _rasterize(raster_class, out_file, gdal_driver, geodataframe,
+               burn_values, attribute, projection, x_size, y_size,
+               nb_band, geo_transform, data_type, no_data, all_touched):
     """ Rasterize geographic layer
 
     Parameters
     ----------
     raster_class: RasterBase
         Raster class to return
+    out_file: str
+        Output file to which raster is written
+    gdal_driver: gdal.Driver
+        GDAL driver
     geodataframe: geopandas.GeoDataFrame or gistools.layer.GeoLayer
         Geographic layer to be rasterized
     burn_values: None or list[float] or list[int]
         list of values to burn in each band, excusive with attribute
     attribute: str
         attribute in layer from which burn value must be retrieved
-    gdal_driver
     projection
     x_size: int
     y_size: int
@@ -41,12 +45,11 @@ def _rasterize(raster_class, geodataframe, burn_values, attribute,
 
     """
 
-    with ShapeTempFile() as shp_file, \
-            RasterTempFile(gdal_driver.GetMetadata()['DMD_EXTENSION']) as out_file:
+    with ShapeTempFile() as shp_file:
 
         geodataframe.to_file(shp_file.path, driver=ESRI_DRIVER)
 
-        out_ds = _gdal_temp_dataset(out_file.path,
+        out_ds = _gdal_temp_dataset(out_file,
                                     gdal_driver,
                                     projection,
                                     x_size,
@@ -67,7 +70,7 @@ def _rasterize(raster_class, geodataframe, burn_values, attribute,
 
     # Be careful with the temp file, make a pointer to be sure
     # the Python garbage collector does not destroy it !
-    raster = raster_class(out_file.path)
-    raster._temp_file = out_file
-
-    return raster
+    # raster = raster_class(out_file.path)
+    # raster._temp_file = out_file
+    #
+    # return raster
