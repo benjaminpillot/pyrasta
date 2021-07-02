@@ -15,13 +15,11 @@ from tqdm import tqdm
 from pyrasta.raster import DigitalElevationModel
 from pyrasta.utils import digitize, TqdmUpTo
 
-import gdal
-
 
 CGIAR_ARCHIVE_FORMAT = "zip"
 CGIAR_URL = "http://srtm.csi.cgiar.org/wp-content/uploads/files/srtm_5x5/TIFF"
 CGIAR_NO_DATA = -32768
-CGIAR_DATA_TYPE = gdal.GetDataTypeByName('Int16')
+CGIAR_DATA_TYPE = 3
 
 
 def _download_srtm_tile(tile_name):
