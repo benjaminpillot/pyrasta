@@ -8,7 +8,6 @@ More detailed description.
 import multiprocessing as mp
 import numpy as np
 
-from pyrasta.io_.files import RasterTempFile
 from pyrasta.tools import _gdal_temp_dataset, _return_raster
 from pyrasta.tools.mapping import GDAL_TO_NUMPY
 from pyrasta.tools.windows import get_block_windows, get_xy_block_windows
@@ -58,9 +57,10 @@ def _op(raster1, out_file, raster2, op_type):
     out_ds = None
 
 
-def _raster_calculation(raster_class, sources, fhandle, window_size,
-                        gdal_driver, data_type, no_data, nb_processes,
-                        chunksize, description):
+@_return_raster
+def _raster_calculation(raster_class, out_file, gdal_driver, sources,
+                        fhandle, window_size, data_type, no_data,
+                        nb_processes, chunksize, description):
     """ Calculate raster expression
 
     """
@@ -77,49 +77,51 @@ def _raster_calculation(raster_class, sources, fhandle, window_size,
     height = int(master_raster.y_size /
                  window_size[1]) + min(1, master_raster.y_size % window_size[1])
 
-    with RasterTempFile(gdal_driver.GetMetadata()['DMD_EXTENSION']) as out_file:
+    # Initialization
+    is_first_run = True
+    y = 0
 
-        is_first_run = True
-        y = 0
+    for win_gen in tqdm(split_into_chunks(window_gen, width),
+                        total=height,
+                        desc=description):
 
-        for win_gen in tqdm(split_into_chunks(window_gen, width),
-                            total=height,
-                            desc=description):
+        with mp.Pool(processes=nb_processes) as pool:
+            list_of_arrays = list(pool.map(fhandle,
+                                           win_gen,
+                                           chunksize=chunksize))
 
-            with mp.Pool(processes=nb_processes) as pool:
-                list_of_arrays = list(pool.map(fhandle,
-                                               win_gen,
-                                               chunksize=chunksize))
+        result = np.concatenate(list_of_arrays, axis=list_of_arrays[0].ndim - 1)
 
-            result = np.concatenate(list_of_arrays, axis=list_of_arrays[0].ndim - 1)
-
-            if is_first_run:
-                if result.ndim == 2:
-                    nb_band = 1
-                else:
-                    nb_band = result.shape[0]
-
-                out_ds = _gdal_temp_dataset(out_file.path,
-                                            gdal_driver,
-                                            master_raster._gdal_dataset.GetProjection(),
-                                            master_raster.x_size,
-                                            master_raster.y_size, nb_band,
-                                            master_raster.geo_transform,
-                                            data_type,
-                                            no_data)
-
-                is_first_run = False
-
-            if nb_band == 1:
-                out_ds.GetRasterBand(1).WriteArray(result, 0, y)
+        if is_first_run:
+            if result.ndim == 2:
+                nb_band = 1
             else:
-                for band in range(nb_band):
-                    out_ds.GetRasterBand(band + 1).WriteArray(result[band, :, :],
-                                                              0, y)
+                nb_band = result.shape[0]
 
-            y += window_size[1]
+            out_ds = _gdal_temp_dataset(out_file,
+                                        gdal_driver,
+                                        master_raster._gdal_dataset.GetProjection(),
+                                        master_raster.x_size,
+                                        master_raster.y_size, nb_band,
+                                        master_raster.geo_transform,
+                                        data_type,
+                                        no_data)
+
+            is_first_run = False
+
+        if nb_band == 1:
+            out_ds.GetRasterBand(1).WriteArray(result, 0, y)
+        else:
+            for band in range(nb_band):
+                out_ds.GetRasterBand(band + 1).WriteArray(result[band, :, :],
+                                                          0, y)
+
+        y += window_size[1]
 
     # Close dataset
     out_ds = None
 
-    return raster_class(out_file.path)
+    # raster = raster_class(out_file.path)
+    # raster._temp_file = out_file
+    #
+    # return raster
