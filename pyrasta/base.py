@@ -200,7 +200,8 @@ class RasterBase:
                             no_data, all_touched, window_size)
 
     @classmethod
-    def merge(cls, rasters, bounds=None, output_format="Gtiff",
+    def merge(cls, rasters, bounds=None,
+              gdal_driver=gdal.GetDriverByName("Gtiff"),
               data_type=gdal.GetDataTypeByName('Float32'), no_data=-999):
         """ Merge multiple rasters
 
@@ -213,8 +214,7 @@ class RasterBase:
             Collection of RasterBase instances
         bounds: tuple
             bounds of the new merged raster
-        output_format:str
-            raster file output format (Gtiff, etc.)
+        gdal_driver
         data_type: int
             GDAL data type
         no_data: int or float
@@ -224,7 +224,7 @@ class RasterBase:
         -------
 
         """
-        return _merge(cls, rasters, bounds, output_format, data_type, no_data)
+        return _merge(cls, rasters, gdal_driver, bounds, data_type, no_data)
 
     @classmethod
     def merge_bands(cls, rasters, resolution="highest",
@@ -243,7 +243,7 @@ class RasterBase:
             Collection of RasterBase instances
         resolution: str
             GDAL resolution option ("highest", "lowest", "average")
-        gdal_driver: osgeo.gdal.Driver
+        gdal_driver: gdal.Driver
         data_type: int
             GDAL data type
         no_data: int or float
