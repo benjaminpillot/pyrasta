@@ -5,7 +5,7 @@
 More detailed description.
 """
 from pyrasta.crs import srs_from
-from pyrasta.io_.files import RasterTempFile, VrtTempFile
+from pyrasta.io_.files import VrtTempFile
 from pyrasta.tools import _gdal_temp_dataset, _return_raster
 
 from osgeo import gdal_array
@@ -30,17 +30,19 @@ def _align_raster(in_raster, out_file, on_raster):
     out_ds = None
 
 
-def _array_to_raster(raster_class, array, crs, bounds,
-                     gdal_driver, no_data):
+@_return_raster
+def _array_to_raster(raster_class, out_file, gdal_driver,
+                     array, crs, bounds, no_data):
     """ Convert array to (north up) raster
 
     Parameters
     ----------
+    out_file:
+    gdal_driver:
     array: numpy.ndarray
     crs: pyproj.CRS
     bounds: tuple
         Image boundaries as (xmin, ymin, xmax, ymax)
-    gdal_driver: osgeo.gdal.Driver
     no_data
 
     Returns
@@ -60,31 +62,31 @@ def _array_to_raster(raster_class, array, crs, bounds,
     geo_transform = (xmin, (xmax - xmin)/x_size, 0,
                      ymax, 0, -(ymax - ymin)/y_size)
 
-    with RasterTempFile(gdal_driver.GetMetadata()['DMD_EXTENSION']) as out_file:
+    # with RasterTempFile(gdal_driver.GetMetadata()['DMD_EXTENSION']) as out_file:
 
-        out_ds = _gdal_temp_dataset(out_file.path,
-                                    gdal_driver,
-                                    crs.to_wkt(),
-                                    x_size,
-                                    y_size,
-                                    nb_band,
-                                    geo_transform,
-                                    gdal_array.NumericTypeCodeToGDALTypeCode(array.dtype),
-                                    no_data)
+    out_ds = _gdal_temp_dataset(out_file,
+                                gdal_driver,
+                                crs.to_wkt(),
+                                x_size,
+                                y_size,
+                                nb_band,
+                                geo_transform,
+                                gdal_array.NumericTypeCodeToGDALTypeCode(array.dtype),
+                                no_data)
 
-        if nb_band == 1:
-            out_ds.GetRasterBand(nb_band).WriteArray(array)
-        else:
-            for band in range(nb_band):
-                out_ds.GetRasterBand(band + 1).WriteArray(array[band, :, :])
+    if nb_band == 1:
+        out_ds.GetRasterBand(nb_band).WriteArray(array)
+    else:
+        for band in range(nb_band):
+            out_ds.GetRasterBand(band + 1).WriteArray(array[band, :, :])
 
     # Close dataset
     out_ds = None
 
-    raster = raster_class(out_file.path)
-    raster._temp_file = out_file
-
-    return raster
+    # raster = raster_class(out_file.path)
+    # raster._temp_file = out_file
+    #
+    # return raster
 
 
 @_return_raster
@@ -107,20 +109,17 @@ def _xy_to_2d_index(raster, x, y):
     return int(px), int(py)
 
 
-def _merge_bands(raster_class, sources, resolution, gdal_driver, data_type, no_data):
+@_return_raster
+def _merge_bands(raster_class, out_file, sources, resolution, data_type, no_data):
     """ Merge multiple bands into one raster
 
     """
-    with RasterTempFile(gdal_driver.GetMetadata()['DMD_EXTENSION']) as out_file:
-
-        vrt_ds = gdal.BuildVRT(VrtTempFile().path, [src._gdal_dataset for src in sources],
-                               resolution=resolution, separate=True, VRTNodata=no_data)
-        out_ds = gdal.Translate(out_file.path, vrt_ds, outputType=data_type)
+    vrt_ds = gdal.BuildVRT(VrtTempFile().path, [src._gdal_dataset for src in sources],
+                           resolution=resolution, separate=True, VRTNodata=no_data)
+    out_ds = gdal.Translate(out_file, vrt_ds, outputType=data_type)
 
     # Close dataset
     out_ds = None
-
-    return raster_class(out_file.path)
 
 
 @_return_raster
