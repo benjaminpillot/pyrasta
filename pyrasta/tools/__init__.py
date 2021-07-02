@@ -15,9 +15,20 @@ import gdal
 def _return_raster(function):
     @wraps(function)
     def return_raster(raster, *args, **kwargs):
-        with RasterTempFile(raster._gdal_driver.GetMetadata()['DMD_EXTENSION']) as out_file:
-            function(raster, out_file.path, *args, **kwargs)
-            new_raster = raster.__class__(out_file.path)
+        try:
+            with RasterTempFile(raster._gdal_driver.GetMetadata()['DMD_EXTENSION']) as out_file:
+                function(raster, out_file.path, *args, **kwargs)
+                new_raster = raster.__class__(out_file.path)
+        except AttributeError:
+            gdal_driver = [arg for arg in args if isinstance(arg, gdal.Driver)][0]
+            args = [arg for arg in args if not isinstance(arg, gdal.Driver)]
+            with RasterTempFile(gdal_driver.GetMetadata()['DMD_EXTENSION']) as out_file:
+                try:
+                    function(raster, out_file.path, gdal_driver, *args, **kwargs)
+                except TypeError:
+                    function(raster, out_file.path, *args, **kwargs)
+                new_raster = raster(out_file.path)
+        finally:
             new_raster._temp_file = out_file
 
         return new_raster
