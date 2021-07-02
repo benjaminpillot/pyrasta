@@ -7,18 +7,14 @@ More detailed description.
 from pyrasta.io_.files import RasterTempFile
 
 import gdal
+from pyrasta.tools import _return_raster
 
 
-def _merge(raster_class, sources, bounds, output_format, data_type, no_data):
+@_return_raster
+def _merge(raster_class, out_file, gdal_driver,
+           sources, bounds, data_type, no_data):
     """ Merge multiple raster sources
 
-    Description
-    -----------
-
-    Parameters
-    ----------
-    sources: list
-        list of RasterBase instances
     """
 
     # Extent of all inputs
@@ -30,19 +26,18 @@ def _merge(raster_class, sources, bounds, output_format, data_type, no_data):
         ys = [item for src in sources for item in src.bounds[2::]]
         dst_w, dst_s, dst_e, dst_n = min(xs), min(ys), max(xs), max(ys)
 
-    with RasterTempFile(gdal.GetDriverByName(output_format).GetMetadata()['DMD_EXTENSION']) \
-            as out_file:
-        gdal.Warp(out_file.path, [src._gdal_dataset for src in sources],
-                  outputBounds=(dst_w, dst_s, dst_e, dst_n),
-                  format=output_format, srcNodata=[src.no_data for src in sources],
-                  dstNodata=no_data, outputType=data_type)
+    gdal.Warp(out_file, [src._gdal_dataset for src in sources],
+              outputBounds=(dst_w, dst_s, dst_e, dst_n),
+              format=gdal_driver.GetDescription(),
+              srcNodata=[src.no_data for src in sources],
+              dstNodata=no_data, outputType=data_type)
 
     # Be careful with the temp file, make a pointer to be sure
     # the Python garbage collector does not destroy it !
-    raster = raster_class(out_file.path)
-    raster._temp_file = out_file
-
-    return raster
+    # raster = raster_class(out_file.path)
+    # raster._temp_file = out_file
+    #
+    # return raster
 
 
 # def _rasterio_merge_modified(sources, out_file, bounds=None, driver="GTiff", precision=7):
