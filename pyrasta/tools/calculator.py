@@ -59,8 +59,8 @@ def _op(raster1, out_file, raster2, op_type):
 
 @_return_raster
 def _raster_calculation(raster_class, out_file, gdal_driver, sources,
-                        fhandle, window_size, data_type, no_data,
-                        nb_processes, chunksize, description):
+                        fhandle, window_size, input_type, output_type,
+                        no_data, nb_processes, chunksize, description):
     """ Calculate raster expression
 
     """
@@ -68,7 +68,7 @@ def _raster_calculation(raster_class, out_file, gdal_driver, sources,
         window_size = (window_size, window_size)
 
     master_raster = sources[0]
-    window_gen = ([src._gdal_dataset.ReadAsArray(*w).astype(GDAL_TO_NUMPY[data_type]) for src in
+    window_gen = ([src._gdal_dataset.ReadAsArray(*w).astype(GDAL_TO_NUMPY[input_type]) for src in
                    sources] for w in get_xy_block_windows(window_size,
                                                           master_raster.x_size,
                                                           master_raster.y_size))
@@ -109,7 +109,7 @@ def _raster_calculation(raster_class, out_file, gdal_driver, sources,
                                         master_raster.x_size,
                                         master_raster.y_size, nb_band,
                                         master_raster.geo_transform,
-                                        data_type,
+                                        output_type,
                                         no_data)
 
             is_first_run = False
