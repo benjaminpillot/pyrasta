@@ -352,7 +352,7 @@ class RasterBase:
         chunksize: int
             chunk size used in map/imap multiprocessing function
         description: str
-            Progress bar description
+            Progress bar description. If None, no progress bar is displayed
 
         Returns
         -------
