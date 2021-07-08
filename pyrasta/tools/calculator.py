@@ -81,9 +81,14 @@ def _raster_calculation(raster_class, out_file, gdal_driver, sources,
     is_first_run = True
     y = 0
 
-    for win_gen in tqdm(split_into_chunks(window_gen, width),
+    if description:
+        iterator = tqdm(split_into_chunks(window_gen, width),
                         total=height,
-                        desc=description):
+                        desc=description)
+    else:
+        iterator = split_into_chunks(window_gen, width)
+
+    for win_gen in iterator:
 
         with mp.Pool(processes=nb_processes) as pool:
             list_of_arrays = list(pool.map(fhandle,
@@ -120,8 +125,3 @@ def _raster_calculation(raster_class, out_file, gdal_driver, sources,
 
     # Close dataset
     out_ds = None
-
-    # raster = raster_class(out_file.path)
-    # raster._temp_file = out_file
-    #
-    # return raster
