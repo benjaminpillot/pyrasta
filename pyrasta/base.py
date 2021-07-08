@@ -319,7 +319,8 @@ class RasterBase:
     @classmethod
     def raster_calculation(cls, rasters, fhandle, window_size=100,
                            gdal_driver=gdal.GetDriverByName("Gtiff"),
-                           data_type=gdal.GetDataTypeByName('Float32'),
+                           input_type=gdal.GetDataTypeByName('Float32'),
+                           output_type=gdal.GetDataTypeByName('Float32'),
                            no_data=-999, nb_processes=mp.cpu_count(),
                            chunksize=MP_CHUNK_SIZE,
                            description="Calculate raster expression"):
@@ -343,7 +344,9 @@ class RasterBase:
             * tuple of 2D coordinates (width, height)
         gdal_driver: osgeo.gdal.Driver
             GDAL driver (output format)
-        data_type: int
+        input_type: int
+            GDAL data type for input raster (if multiple types, let "float32")
+        output_type: int
             GDAL data type for output raster
         no_data: int or float
             no data value in resulting raster
@@ -360,8 +363,8 @@ class RasterBase:
             New temporary instance
         """
         return _raster_calculation(cls, rasters, fhandle, window_size,
-                                   gdal_driver, data_type, no_data,
-                                   nb_processes, chunksize, description)
+                                   gdal_driver, input_type, output_type,
+                                   no_data, nb_processes, chunksize, description)
 
     def read_array(self, band=None, bounds=None):
         """ Write raster to numpy array
