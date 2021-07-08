@@ -55,11 +55,11 @@ def _windowing(raster, out_file, function, band, window_size,
                         int(len(window_generator) % chunk_size != 0),
                         desc="Sliding window computation"):
         with mp.Pool(processes=nb_processes) as pool:
-            output = np.asarray(list(pool.map(partial(_set_nan,
-                                                      function=function,
-                                                      no_data=raster.no_data),
-                                              win_gen,
-                                              chunksize=MP_CHUNK_SIZE)))
+            output = np.asarray(list(pool.imap(partial(_set_nan,
+                                                       function=function,
+                                                       no_data=raster.no_data),
+                                               win_gen,
+                                               chunksize=MP_CHUNK_SIZE)))
 
         output[np.isnan(output)] = no_data
 
