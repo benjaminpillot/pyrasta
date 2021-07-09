@@ -60,27 +60,38 @@ class RasterBase:
         self._file = src_file
 
     def __add__(self, other):
-        """ Add two raster
-
-        """
         return _op(self, other, "add")
 
     def __sub__(self, other):
-        """ Subtract two raster
-
-        """
         return _op(self, other, "sub")
 
     def __mul__(self, other):
-        """ Multiply two raster
-
-        """
         return _op(self, other, "mul")
 
-    def __truediv__(self, other):
-        """ Divide two raster
+    def __pow__(self, other):
+        return _op(self, other, "pow")
 
-        """
+    def __radd__(self, other):
+
+        return _op(self, other, 'add')
+
+    def __rmul__(self, other):
+
+        return _op(self, other, "mul")
+
+    def __rpow__(self, other):
+
+        return _op(self, other, "rpow")
+
+    def __rsub__(self, other):
+
+        return _op(self, other, 'rsub')
+
+    def __rtruediv__(self, other):
+
+        return _op(self, other, "rtruediv")
+
+    def __truediv__(self, other):
         return _op(self, other, "truediv")
 
     def __del__(self):
