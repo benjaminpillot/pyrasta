@@ -32,22 +32,37 @@ def _op(raster1, out_file, raster2, op_type):
     for band in range(1, raster1.nb_band + 1):
 
         for window in get_block_windows(OP_WINDOW_SIZE, raster1.x_size, raster1.y_size):
-            array1 = raster1._gdal_dataset.GetRasterBand(
-                band).ReadAsArray(*window).astype("float32")
-            try:
-                array2 = raster2._gdal_dataset.GetRasterBand(
-                    band).ReadAsArray(*window).astype("float32")
-            except AttributeError:
-                array2 = raster2  # If second input is not a raster but a scalar
+            arrays = []
+            for src in [raster1, raster2]:
+                try:
+                    arrays.append(src._gdal_dataset.GetRasterBand(
+                        band).ReadAsArray(*window).astype("float32"))
+                except AttributeError:
+                    arrays.append(src)
+            # array1 = raster1._gdal_dataset.GetRasterBand(
+            #     band).ReadAsArray(*window).astype("float32")
+            # try:
+            #     array2 = raster2._gdal_dataset.GetRasterBand(
+            #         band).ReadAsArray(*window).astype("float32")
+            # except AttributeError:
+            #     array2 = raster2  # If second input is not a raster but a scalar
 
             if op_type == "add":
-                result = array1 + array2
+                result = arrays[0] + arrays[1]
             elif op_type == "sub":
-                result = array1 - array2
+                result = arrays[0] - arrays[1]
+            elif op_type == "rsub":
+                result = arrays[1] - arrays[0]
             elif op_type == "mul":
-                result = array1 * array2
+                result = arrays[0] * arrays[1]
+            elif op_type == "pow":
+                result = arrays[0] ** arrays[1]
+            elif op_type == "rpow":
+                result = arrays[1] ** arrays[0]
             elif op_type == "truediv":
-                result = array1 / array2
+                result = arrays[0] / arrays[1]
+            elif op_type == "rtruediv":
+                return arrays[1] / arrays[0]
             else:
                 result = None
 
