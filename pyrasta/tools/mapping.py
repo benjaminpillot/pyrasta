@@ -14,3 +14,13 @@ GDAL_TO_NUMPY = {1: "int8",
                  7: "float64",
                  10: "complex64",
                  11: "complex128"}
+
+NUMPY_TO_GDAL = {"int8": 1,
+                 "uint16": 2,
+                 "int16": 3,
+                 "uint32": 4,
+                 "int32": 5,
+                 "float32": 6,
+                 "float64": 7,
+                 "complex64": 10,
+                 "complex128": 11}
