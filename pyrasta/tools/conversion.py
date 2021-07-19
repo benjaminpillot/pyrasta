@@ -8,10 +8,11 @@ from pyrasta.crs import srs_from
 from pyrasta.io_.files import VrtTempFile
 from pyrasta.tools import _gdal_temp_dataset, _return_raster
 
-from osgeo import gdal_array
+# from osgeo import gdal_array
 
 import affine
 import gdal
+from pyrasta.tools.mapping import NUMPY_TO_GDAL
 
 
 @_return_raster
@@ -62,8 +63,6 @@ def _array_to_raster(raster_class, out_file, gdal_driver,
     geo_transform = (xmin, (xmax - xmin)/x_size, 0,
                      ymax, 0, -(ymax - ymin)/y_size)
 
-    # with RasterTempFile(gdal_driver.GetMetadata()['DMD_EXTENSION']) as out_file:
-
     out_ds = _gdal_temp_dataset(out_file,
                                 gdal_driver,
                                 crs.to_wkt(),
@@ -71,7 +70,8 @@ def _array_to_raster(raster_class, out_file, gdal_driver,
                                 y_size,
                                 nb_band,
                                 geo_transform,
-                                gdal_array.NumericTypeCodeToGDALTypeCode(array.dtype),
+                                NUMPY_TO_GDAL[array.dtype.name],
+                                # gdal_array.NumericTypeCodeToGDALTypeCode(array.dtype),
                                 no_data)
 
     if nb_band == 1:
@@ -82,11 +82,6 @@ def _array_to_raster(raster_class, out_file, gdal_driver,
 
     # Close dataset
     out_ds = None
-
-    # raster = raster_class(out_file.path)
-    # raster._temp_file = out_file
-    #
-    # return raster
 
 
 @_return_raster
