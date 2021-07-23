@@ -24,3 +24,11 @@ NUMPY_TO_GDAL = {"int8": 1,
                  "float64": 7,
                  "complex64": 10,
                  "complex128": 11}
+
+GDAL_TO_OGR = {1: 0,
+               2: 0,
+               3: 0,
+               4: 0,
+               5: 0,
+               6: 2,
+               7: 2}
