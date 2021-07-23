@@ -88,7 +88,7 @@ def proj4_from(proj):
     return proj4_str
 
 
-def srs_from(proj):
+def srs_from(crs):
     """ Get spatial reference system from projection
 
     Description
@@ -96,30 +96,14 @@ def srs_from(proj):
 
     Parameters
     ----------
-    proj:
+    crs:
 
     Returns
     -------
     SpatialReference instance (osgeo.osr package)
     """
-    proj4 = proj4_from(proj)
+    # proj4 = proj4_from(proj)
     srs = osr.SpatialReference()
-    srs.ImportFromProj4(proj4)
+    srs.ImportFromWkt(crs.to_wkt())
 
     return srs
-
-
-def wkt_from(proj):
-    """ Get WKT spatial reference system from projection
-
-    Description
-    -----------
-
-    Parameters
-    ----------
-    proj:
-
-    Returns
-    -------
-    """
-    return srs_from(proj).ExportToWkt()
