@@ -5,8 +5,8 @@
 More detailed description.
 """
 from pyrasta.crs import srs_from
-from pyrasta.io_.files import VrtTempFile
-from pyrasta.tools import _gdal_temp_dataset, _return_raster
+from pyrasta.io_.files import VrtTempFile, _copy_to_file
+from pyrasta.tools import _gdal_temp_dataset, _return_raster, _clone_gdal_dataset
 
 # from osgeo import gdal_array
 
@@ -248,6 +248,26 @@ def _rescale_raster(raster, out_file, ds_min, ds_max):
     out_ds = gdal.Translate(out_file, raster._gdal_dataset,
                             scaleParams=[[src_min, src_max, ds_min, ds_max]
                                          for src_min, src_max in zip(raster.min, raster.max)])
+
+    # Close dataset
+    out_ds = None
+
+
+@_return_raster
+def _set_data_type(raster, out_file, data_type):
+
+    out_ds = gdal.Translate(out_file, raster._gdal_dataset,
+                            outputType=data_type)
+
+    # Close dataset
+    out_ds = None
+
+
+@_return_raster
+def _set_no_data(raster, out_file, no_data):
+
+    out_ds = gdal.Translate(out_file, raster._gdal_dataset,
+                            noData=no_data)
 
     # Close dataset
     out_ds = None
