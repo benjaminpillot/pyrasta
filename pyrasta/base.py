@@ -454,8 +454,8 @@ class RasterBase:
 
         Parameters
         ----------
-        crs: int or str
-            valid CRS (Valid EPSG code, valid proj string, etc.)
+        crs: pyproj.CRS
+            valid CRS
 
         Returns
         -------
