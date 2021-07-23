@@ -14,7 +14,7 @@ from pyrasta.tools.calculator import _op, _raster_calculation
 from pyrasta.tools.clip import _clip_raster_by_extent, _clip_raster_by_mask
 from pyrasta.tools.conversion import _resample_raster, _padding, _rescale_raster, \
     _align_raster, _extract_bands, _merge_bands, _read_array, _xy_to_2d_index, _read_value_at, \
-    _project_raster, _array_to_raster
+    _project_raster, _array_to_raster, _set_no_data, _set_data_type
 from pyrasta.exceptions import RasterBaseError
 from pyrasta.tools.filters import _sieve
 from pyrasta.tools.mask import _raster_mask
@@ -473,6 +473,35 @@ class RasterBase:
         -------
         """
         return _rescale_raster(self, r_min, r_max)
+
+    def set_no_data(self, no_data):
+        """ Set no data value in raster
+
+        Parameters
+        ----------
+        no_data: int or float
+
+        Returns
+        -------
+        RasterBase
+
+        """
+        return _set_no_data(self, no_data)
+
+    def set_data_type(self, data_type):
+        """ Set data type
+
+        Parameters
+        ----------
+        data_type: str
+            Valid GDAL data type name
+
+        Returns
+        -------
+        RasterBase
+
+        """
+        return _set_data_type(self, gdal.GetDataTypeByName(data_type))
 
     def sieve_filter(self, threshold=1, connectedness=4, progress_bar=False):
         """ Apply sieve filter
