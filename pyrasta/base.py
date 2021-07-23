@@ -290,7 +290,7 @@ class RasterBase:
                   burn_values=None, attribute=None,
                   gdal_driver=gdal.GetDriverByName("Gtiff"), nb_band=1,
                   data_type=gdal.GetDataTypeByName("Float32"), no_data=-999,
-                  all_touched=True):
+                  all_touched=True, progress_bar=False):
         """ Rasterize geographic layer
 
         Parameters
@@ -318,6 +318,8 @@ class RasterBase:
         no_data: int or float, default -999
             No data value
         all_touched: bool
+        progress_bar: bool
+            Is progress bar displayed ?
 
         Returns
         -------
@@ -325,7 +327,7 @@ class RasterBase:
         """
         return _rasterize(cls, layer, burn_values, attribute, gdal_driver, projection,
                           x_size, y_size, nb_band, geo_transform, data_type, no_data,
-                          all_touched)
+                          all_touched, progress_bar)
 
     @classmethod
     def raster_calculation(cls, rasters, fhandle, window_size=100,
