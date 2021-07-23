@@ -454,14 +454,14 @@ class RasterBase:
 
         Parameters
         ----------
-        crs: pyproj.CRS
-            valid CRS
+        crs: int or str or pyproj.CRS
+            valid CRS (Valid pyproj CRS, EPSG code, proj string, etc.)
 
         Returns
         -------
 
         """
-        return _project_raster(self, crs)
+        return _project_raster(self, pyproj.CRS(crs))
 
     def to_file(self, filename):
         """ Write raster copy to file
