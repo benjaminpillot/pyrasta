@@ -9,12 +9,14 @@ from pyrasta.io_.files import ShapeTempFile
 from pyrasta.tools import _gdal_temp_dataset, _return_raster
 
 import gdal
+from pyrasta.utils import gdal_progress_bar
 
 
 @_return_raster
 def _rasterize(raster_class, out_file, gdal_driver, geodataframe,
                burn_values, attribute, projection, x_size, y_size,
-               nb_band, geo_transform, data_type, no_data, all_touched):
+               nb_band, geo_transform, data_type, no_data, all_touched,
+               progress_bar):
     """ Rasterize geographic layer
 
     Parameters
@@ -39,6 +41,7 @@ def _rasterize(raster_class, out_file, gdal_driver, geodataframe,
     data_type
     no_data
     all_touched: bool
+    progress_bar: bool
 
     Returns
     -------
@@ -59,12 +62,17 @@ def _rasterize(raster_class, out_file, gdal_driver, geodataframe,
                                     data_type,
                                     no_data)
 
+        callback, callback_data = gdal_progress_bar(progress_bar,
+                                                    description="Rasterize layer")
+
         gdal.Rasterize(out_ds,
                        shp_file.path,
                        bands=[bd + 1 for bd in range(nb_band)],
                        burnValues=burn_values,
                        attribute=attribute,
-                       allTouched=all_touched)
+                       allTouched=all_touched,
+                       callback=callback,
+                       callback_data=callback_data)
 
     out_ds = None
 
