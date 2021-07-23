@@ -4,6 +4,7 @@
 
 More detailed description.
 """
+import math
 from collections import Collection
 from itertools import chain, islice
 
@@ -108,7 +109,10 @@ def gdal_progress_bar(display, description):
 
 
 def gdal_progress_callback(complete, message, tqdm_pg):
-    tqdm_pg.update(1)
+    if complete >= 1:
+        tqdm_pg.close()
+    else:
+        tqdm_pg.update(1)
 
 
 @njit()
