@@ -53,6 +53,19 @@ def _gdal_temp_dataset(out_file, gdal_driver, projection, x_size, y_size,
     return out_ds
 
 
+def _clone_gdal_dataset(raster, out_file):
+
+    return _gdal_temp_dataset(out_file,
+                              raster._gdal_driver,
+                              raster._gdal_dataset.GetProjection(),
+                              raster.x_size,
+                              raster.y_size,
+                              raster.nb_band,
+                              raster.geo_transform,
+                              raster.data_type,
+                              raster.no_data)
+
+
 def _set_no_data(gdal_ds, no_data):
     """ Set no data value into gdal dataset
 
