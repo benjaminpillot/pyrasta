@@ -95,6 +95,22 @@ def digitize(value, list_of_values, ascend=True, right=False):
     return loc.index(False) if False in loc else len(list_of_values)
 
 
+def gdal_progress_bar(display, description):
+
+    if display:
+        callback = gdal_progress_callback
+        callback_data = tqdm(desc=description, total=100)
+    else:
+        callback = None
+        callback_data = None
+
+    return callback, callback_data
+
+
+def gdal_progress_callback(complete, message, tqdm_pg):
+    tqdm_pg.update(1)
+
+
 @njit()
 def grid(origin, resolution, size):
     """ Return regular grid vector
