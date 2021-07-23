@@ -63,3 +63,7 @@ rstats = Raster("/path/to/your/raster").zonal_stats(geopandas.GeoDataFrame.from_
 
 ## Author
 Benjamin Pillot
+
+<br/>
+
+![image](docs/espace-dev-ird.png)
