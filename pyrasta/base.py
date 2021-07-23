@@ -8,6 +8,7 @@ More detailed description.
 import multiprocessing as mp
 import warnings
 
+import ogr
 import pyproj
 from pyrasta.io_.files import _copy_to_file
 from pyrasta.tools.calculator import _op, _raster_calculation
@@ -16,8 +17,10 @@ from pyrasta.tools.conversion import _resample_raster, _padding, _rescale_raster
     _align_raster, _extract_bands, _merge_bands, _read_array, _xy_to_2d_index, _read_value_at, \
     _project_raster, _array_to_raster
 from pyrasta.exceptions import RasterBaseError
+from pyrasta.tools.filters import _sieve
 from pyrasta.tools.mask import _raster_mask
 from pyrasta.tools.merge import _merge
+from pyrasta.tools.polygonize import _polygonize
 from pyrasta.tools.rasterize import _rasterize
 from pyrasta.tools.stats import _histogram, _zonal_stats
 from pyrasta.tools.windows import _windowing
@@ -285,6 +288,29 @@ class RasterBase:
         """
         return _padding(self, pad_x, pad_y, value)
 
+    def polygonize(self, filename, band=1, layer_name="layer", field_name="unknown",
+                   ogr_driver=ogr.GetDriverByName("ESRI Shapefile"),
+                   is_8_connected=False, progress_bar=False):
+        """ Polygonize raster
+
+        Parameters
+        ----------
+        filename: str
+        band: int
+        layer_name: str
+        field_name: str
+        ogr_driver: ogr.Driver
+        is_8_connected: bool
+        progress_bar: bool
+
+        Returns
+        -------
+
+        """
+        return _polygonize(self, filename, band, layer_name,
+                           field_name, ogr_driver, is_8_connected,
+                           progress_bar)
+
     @classmethod
     def rasterize(cls, layer, projection, x_size, y_size, geo_transform,
                   burn_values=None, attribute=None,
@@ -450,6 +476,21 @@ class RasterBase:
         -------
         """
         return _rescale_raster(self, r_min, r_max)
+
+    def sieve_filter(self, threshold=1, connectedness=4, progress_bar=False):
+        """ Apply sieve filter
+
+        Parameters
+        ----------
+        threshold: int
+        connectedness: int
+        progress_bar: bool
+
+        Returns
+        -------
+
+        """
+        return _sieve(self, threshold, connectedness, progress_bar)
 
     def to_crs(self, crs):
         """ Re-project raster onto new CRS
