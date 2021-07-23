@@ -6,7 +6,6 @@ More detailed description.
 """
 
 import multiprocessing as mp
-import warnings
 
 import ogr
 import pyproj
@@ -33,7 +32,7 @@ gdal.UseExceptions()
 
 class RasterBase:
 
-    def __init__(self, src_file, no_data=None):
+    def __init__(self, src_file):
         """ Raster class constructor
 
         Description
@@ -43,8 +42,6 @@ class RasterBase:
         ----------
         src_file: str
             valid path to raster file
-        no_data: int or float
-            Set no data value only if it is not already defined in raster file
         """
         try:
             self._gdal_dataset = gdal.Open(src_file)
@@ -52,12 +49,12 @@ class RasterBase:
             raise RasterBaseError('\nGDAL returns: \"%s\"' % e)
 
         # If NoData not defined, define here
-        for band in range(self.nb_band):
-            if no_data is not None:
-                if self._gdal_dataset.GetRasterBand(band + 1).GetNoDataValue() is None:
-                    self._gdal_dataset.GetRasterBand(band + 1).SetNoDataValue(no_data)
-                else:
-                    warnings.warn("No data value is already set, cannot overwrite.")
+        # for band in range(self.nb_band):
+        #     if no_data is not None:
+        #         if self._gdal_dataset.GetRasterBand(band + 1).GetNoDataValue() is None:
+        #             self._gdal_dataset.GetRasterBand(band + 1).SetNoDataValue(no_data)
+        #         else:
+        #             warnings.warn("No data value is already set, cannot overwrite.")
 
         self._gdal_driver = self._gdal_dataset.GetDriver()
         self._file = src_file
