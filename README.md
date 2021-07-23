@@ -15,6 +15,7 @@ methods as well as zonal statistics.
 
 ## Basic available operations
 * [x] Merging, clipping, re-projecting, padding, resampling, rescaling, windowing
+* [x] Rasterize and Polygonize
 * [x] Raster calculator to design your own operations
 * [x] Fast raster zonal statistics
 * [x] Automatically download and merge SRTM DEM(s) from CGIAR online database
