@@ -35,7 +35,9 @@ def _polygonize(raster, filename, band, layer_name,
     """
     connectivity = "8CONNECTED=%d" % (8 if is_8_connected else 4)
     dst_ds = ogr_driver.CreateDataSource(filename)
-    dst_layer = dst_ds.CreateLayer(layer_name, srs=srs_from(raster.crs))
+    dst_layer = dst_ds.CreateLayer(layer_name,
+                                   geom_type=ogr.wkbPolygon,
+                                   srs=srs_from(raster.crs))
 
     fd = ogr.FieldDefn(field_name, ogr.OFTInteger)
     dst_layer.CreateField(fd)
@@ -43,11 +45,14 @@ def _polygonize(raster, filename, band, layer_name,
     callback, callback_data = gdal_progress_bar(progress_bar,
                                                 description="Polygonize raster")
 
-    gdal.Polygonize(raster._gdal_dataset.GetRasterBand(band),
-                    None,
+    srcband = raster._gdal_dataset.GetRasterBand(band)
+    maskband = srcband.GetMaskBand()
+
+    gdal.Polygonize(srcband,
+                    maskband,
                     dst_layer,
                     0,
-                    [],
+                    [connectivity],
                     callback=callback,
                     callback_data=callback_data)
 
