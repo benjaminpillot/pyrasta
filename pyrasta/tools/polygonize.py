@@ -9,7 +9,6 @@ import math
 import gdal
 import ogr
 from pyrasta.crs import srs_from
-from pyrasta.tools.mapping import GDAL_TO_OGR
 from pyrasta.utils import gdal_progress_bar
 
 
