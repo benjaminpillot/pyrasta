@@ -16,7 +16,7 @@ from pyrasta.utils import gdal_progress_bar
 def _polygonize(raster, filename, band, layer_name,
                 field_name, ogr_driver, is_8_connected,
                 progress_bar):
-    """
+    """ Polygonize raster
 
     Parameters
     ----------
