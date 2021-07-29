@@ -7,6 +7,7 @@ More detailed description.
 
 import multiprocessing as mp
 
+import numpy as np
 import ogr
 import pyproj
 from pyrasta.io_.files import _copy_to_file
@@ -709,7 +710,12 @@ class RasterBase:
 
     @property
     def no_data(self):
-        return self._gdal_dataset.GetRasterBand(1).GetNoDataValue()
+        no_data = self._gdal_dataset.GetRasterBand(1).GetNoDataValue()
+        if no_data is None:
+            return np.nan
+        else:
+            return no_data
+        # return self._gdal_dataset.GetRasterBand(1).GetNoDataValue()
 
     @lazyproperty
     def data_type(self):
