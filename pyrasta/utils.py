@@ -4,7 +4,7 @@
 
 More detailed description.
 """
-import math
+import numpy as np
 from collections import Collection
 from itertools import chain, islice
 
@@ -135,6 +135,13 @@ def grid(origin, resolution, size):
         origin += resolution
 
         yield origin
+
+
+def isnan(value):
+    try:
+        return np.isnan(value)
+    except TypeError:
+        return False
 
 
 def lazyproperty(func):
