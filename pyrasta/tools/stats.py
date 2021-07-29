@@ -42,7 +42,7 @@ def _histogram(raster, nb_bins, normalized):
 
 
 def _zonal_stats(raster, layer, band, stats, customized_stat,
-                 no_data, all_touched, show_progressbar, nb_processes):
+                 all_touched, show_progressbar, nb_processes):
     """ Retrieve zonal statistics from raster corresponding to features in layer
     
     Parameters
@@ -63,8 +63,6 @@ def _zonal_stats(raster, layer, band, stats, customized_stat,
     customized_stat: dict
         User's own customized statistic function
         as {'your_function_name': function}
-    no_data: int or float
-        No data value
     all_touched: bool
         Whether to include every raster cell touched by a geometry, or only
         those having a center point within the polygon.
