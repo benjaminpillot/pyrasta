@@ -86,10 +86,10 @@ def _zonal_stats(raster, layer, band, stats, customized_stat,
     if customized_stat is not None:
         stats_calc.update(customized_stat)
 
-    layer["ID"] = layer.index
+    layer["__ID__"] = layer.index
     raster_layer = raster.rasterize(layer, raster.projection, raster.x_size,
                                     raster.y_size, raster.geo_transform,
-                                    attribute="ID", all_touched=all_touched)
+                                    attribute="__ID__", all_touched=all_touched)
 
     bounds = layer.bounds.to_numpy()
     zone = zone_gen(raster, bounds, band)
