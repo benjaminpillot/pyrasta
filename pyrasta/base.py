@@ -609,7 +609,7 @@ class RasterBase:
         return _xy_to_2d_index(self, x, y)
 
     def zonal_stats(self, layer, band=1, stats=None, customized_stats=None,
-                    no_data=-999, all_touched=True, show_progressbar=True,
+                    all_touched=True, show_progressbar=True,
                     nb_processes=mp.cpu_count()):
         """ Compute zonal statistics
 
@@ -628,8 +628,6 @@ class RasterBase:
         customized_stats: dict
             User's own customized statistic functions
             as {'your_function_name': function}
-        no_data: int or float
-            No data value
         all_touched: bool
             Whether to include every raster cell touched by a geometry, or only
             those having a center point within the polygon.
@@ -647,7 +645,7 @@ class RasterBase:
         """
         if stats is not None:
             return _zonal_stats(self, layer, band, stats, customized_stats,
-                                no_data, all_touched, show_progressbar, nb_processes)
+                                all_touched, show_progressbar, nb_processes)
 
     @property
     def crs(self):
