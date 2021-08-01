@@ -30,7 +30,7 @@ def _log(raster, out_file):
 
             array = raster._gdal_dataset.GetRasterBand(band + 1).\
                 ReadAsArray(*window).astype("float32")
-            out_ds.GetRasterBand(band).WriteArray(np.log(array), window[0], window[1])
+            out_ds.GetRasterBand(band + 1).WriteArray(np.log(array), window[0], window[1])
 
     # Close dataset
     out_ds = None
@@ -47,7 +47,7 @@ def _log10(raster, out_file):
 
             array = raster._gdal_dataset.GetRasterBand(band + 1).\
                 ReadAsArray(*window).astype("float32")
-            out_ds.GetRasterBand(band).WriteArray(np.log10(array), window[0], window[1])
+            out_ds.GetRasterBand(band + 1).WriteArray(np.log10(array), window[0], window[1])
 
     # Close dataset
     out_ds = None
