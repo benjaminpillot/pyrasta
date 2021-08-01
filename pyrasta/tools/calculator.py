@@ -20,7 +20,7 @@ OP_WINDOW_SIZE = 1000
 
 
 @_return_raster
-def log(raster, out_file):
+def _log(raster, out_file):
 
     out_ds = _clone_gdal_dataset(raster, out_file, "float32")
 
@@ -36,7 +36,7 @@ def log(raster, out_file):
 
 
 @_return_raster
-def log10(raster, out_file):
+def _log10(raster, out_file):
 
     out_ds = _clone_gdal_dataset(raster, out_file, "float32")
 
