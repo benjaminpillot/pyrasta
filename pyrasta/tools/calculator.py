@@ -22,7 +22,8 @@ OP_WINDOW_SIZE = 1000
 @_return_raster
 def _log(raster, out_file):
 
-    out_ds = _clone_gdal_dataset(raster, out_file, "float32")
+    out_ds = _clone_gdal_dataset(raster, out_file,
+                                 gdal.GetDataTypeByName("float32"))
 
     for band in range(raster.nb_band):
         for window in get_block_windows(OP_WINDOW_SIZE, raster.x_size, raster.y_size):
@@ -38,7 +39,8 @@ def _log(raster, out_file):
 @_return_raster
 def _log10(raster, out_file):
 
-    out_ds = _clone_gdal_dataset(raster, out_file, "float32")
+    out_ds = _clone_gdal_dataset(raster, out_file,
+                                 gdal.GetDataTypeByName("float32"))
 
     for band in range(raster.nb_band):
         for window in get_block_windows(OP_WINDOW_SIZE, raster.x_size, raster.y_size):
