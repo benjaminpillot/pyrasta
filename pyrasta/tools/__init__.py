@@ -53,7 +53,10 @@ def _gdal_temp_dataset(out_file, gdal_driver, projection, x_size, y_size,
     return out_ds
 
 
-def _clone_gdal_dataset(raster, out_file):
+def _clone_gdal_dataset(raster, out_file, data_type=None):
+
+    if data_type is None:
+        data_type = raster.data_type
 
     return _gdal_temp_dataset(out_file,
                               raster._gdal_driver,
@@ -62,7 +65,7 @@ def _clone_gdal_dataset(raster, out_file):
                               raster.y_size,
                               raster.nb_band,
                               raster.geo_transform,
-                              raster.data_type,
+                              data_type,
                               raster.no_data)
 
 
