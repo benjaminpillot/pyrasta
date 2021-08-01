@@ -8,7 +8,7 @@ More detailed description.
 import multiprocessing as mp
 import numpy as np
 
-from pyrasta.tools import _gdal_temp_dataset, _return_raster
+from pyrasta.tools import _gdal_temp_dataset, _return_raster, _clone_gdal_dataset
 from pyrasta.tools.mapping import GDAL_TO_NUMPY
 from pyrasta.tools.windows import get_block_windows, get_xy_block_windows
 from pyrasta.utils import split_into_chunks
@@ -17,6 +17,38 @@ from tqdm import tqdm
 import gdal
 
 OP_WINDOW_SIZE = 1000
+
+
+@_return_raster
+def log(raster, out_file):
+
+    out_ds = _clone_gdal_dataset(raster, out_file, "float32")
+
+    for band in range(raster.nb_band):
+        for window in get_block_windows(OP_WINDOW_SIZE, raster.x_size, raster.y_size):
+
+            array = raster._gdal_dataset.GetRasterBand(band + 1).\
+                ReadAsArray(*window).astype("float32")
+            out_ds.GetRasterBand(band).WriteArray(np.log(array), window[0], window[1])
+
+    # Close dataset
+    out_ds = None
+
+
+@_return_raster
+def log10(raster, out_file):
+
+    out_ds = _clone_gdal_dataset(raster, out_file, "float32")
+
+    for band in range(raster.nb_band):
+        for window in get_block_windows(OP_WINDOW_SIZE, raster.x_size, raster.y_size):
+
+            array = raster._gdal_dataset.GetRasterBand(band + 1).\
+                ReadAsArray(*window).astype("float32")
+            out_ds.GetRasterBand(band).WriteArray(np.log10(array), window[0], window[1])
+
+    # Close dataset
+    out_ds = None
 
 
 @_return_raster
