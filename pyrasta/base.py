@@ -11,7 +11,7 @@ import numpy as np
 import ogr
 import pyproj
 from pyrasta.io_.files import _copy_to_file
-from pyrasta.tools.calculator import _op, _raster_calculation
+from pyrasta.tools.calculator import _op, _raster_calculation, _log, _log10
 from pyrasta.tools.clip import _clip_raster_by_extent, _clip_raster_by_mask
 from pyrasta.tools.conversion import _resample_raster, _padding, _rescale_raster, \
     _align_raster, _extract_bands, _merge_bands, _read_array, _xy_to_2d_index, _read_value_at, \
@@ -182,6 +182,24 @@ class RasterBase:
 
         """
         return _histogram(self, nb_bins, normalized)
+
+    def log(self):
+        """ Return logarithm of raster data
+
+        Returns
+        -------
+
+        """
+        return _log(self)
+
+    def log10(self):
+        """ Return base 10 logarithm
+
+        Returns
+        -------
+
+        """
+        return _log10(self)
 
     def mask(self, mask, gdal_driver=gdal.GetDriverByName("Gtiff"),
              data_type=gdal.GetDataTypeByName('Float32'),
