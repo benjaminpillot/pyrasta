@@ -58,10 +58,7 @@ def _op(raster1, out_file, raster2, op_type):
     """ Basic arithmetic operations
 
     """
-    out_ds = _gdal_temp_dataset(out_file, raster1._gdal_driver,
-                                raster1._gdal_dataset.GetProjection(), raster1.x_size,
-                                raster1.y_size, raster1.nb_band, raster1.geo_transform,
-                                gdal.GetDataTypeByName('Float32'), raster1.no_data)
+    out_ds = _clone_gdal_dataset(raster1, out_file, data_type=gdal.GetDataTypeByName('float32'))
 
     for band in range(1, raster1.nb_band + 1):
 
@@ -73,13 +70,6 @@ def _op(raster1, out_file, raster2, op_type):
                         band).ReadAsArray(*window).astype("float32"))
                 except AttributeError:
                     arrays.append(src)
-            # array1 = raster1._gdal_dataset.GetRasterBand(
-            #     band).ReadAsArray(*window).astype("float32")
-            # try:
-            #     array2 = raster2._gdal_dataset.GetRasterBand(
-            #         band).ReadAsArray(*window).astype("float32")
-            # except AttributeError:
-            #     array2 = raster2  # If second input is not a raster but a scalar
 
             if op_type == "add":
                 result = arrays[0] + arrays[1]
