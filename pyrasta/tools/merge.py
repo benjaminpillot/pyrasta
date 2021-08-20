@@ -4,10 +4,12 @@
 
 More detailed description.
 """
-from pyrasta.io_.files import RasterTempFile
-
-import gdal
 from pyrasta.tools import _return_raster
+
+try:
+    from osgeo import gdal
+except ImportError:
+    import gdal
 
 
 @_return_raster

@@ -4,9 +4,13 @@
 
 More detailed description.
 """
-import gdal
 from pyrasta.tools import _clone_gdal_dataset, _return_raster
 from pyrasta.utils import gdal_progress_bar
+
+try:
+    from osgeo import gdal
+except ImportError:
+    import gdal
 
 
 @_return_raster

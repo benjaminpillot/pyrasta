@@ -5,7 +5,11 @@
 More detailed description.
 """
 
-import osr
+try:
+    from osgeo import osr
+except ImportError:
+    import osr
+
 import pyproj
 
 

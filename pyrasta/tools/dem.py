@@ -6,7 +6,10 @@ More detailed description.
 """
 from pyrasta.tools import _return_raster
 
-import gdal
+try:
+    from osgeo import gdal
+except ImportError:
+    import gdal
 
 
 @_return_raster
