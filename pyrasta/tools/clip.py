@@ -8,7 +8,10 @@ from pyrasta.io_ import ESRI_DRIVER
 from pyrasta.io_.files import RasterTempFile, ShapeTempFile
 from pyrasta.tools import _return_raster, _gdal_temp_dataset
 
-import gdal
+try:
+    from osgeo import gdal
+except ImportError:
+    import gdal
 
 
 @_return_raster

@@ -8,8 +8,12 @@ from pyrasta.io_ import ESRI_DRIVER
 from pyrasta.io_.files import ShapeTempFile
 from pyrasta.tools import _gdal_temp_dataset, _return_raster
 
-import gdal
 from pyrasta.utils import gdal_progress_bar
+
+try:
+    from osgeo import gdal
+except ImportError:
+    import gdal
 
 
 @_return_raster
