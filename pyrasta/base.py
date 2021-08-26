@@ -202,7 +202,7 @@ class RasterBase:
         return _log10(self)
 
     def mask(self, mask, gdal_driver=gdal.GetDriverByName("Gtiff"),
-             data_type=gdal.GetDataTypeByName('Float32'),
+             output_type=gdal.GetDataTypeByName('Float32'),
              all_touched=True, no_data=-999, window_size=500):
         """ Apply mask to raster
 
@@ -212,8 +212,8 @@ class RasterBase:
             Mask layer as a GeoDataFrame or GeoLayer
         gdal_driver: osgeo.gdal.Driver
             Driver used to write data to file
-        data_type: int
-            GDAL data type
+        output_type: int
+            Raster GDAL output type ("int16", "float32", etc.)
         all_touched: bool
             if True, all touched pixels within layer boundaries are burnt,
             when clipping raster by mask
@@ -226,7 +226,7 @@ class RasterBase:
         -------
 
         """
-        return _raster_mask(self, mask, gdal_driver, data_type,
+        return _raster_mask(self, mask, gdal_driver, output_type,
                             no_data, all_touched, window_size)
 
     @classmethod
