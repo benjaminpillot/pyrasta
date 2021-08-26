@@ -4,12 +4,14 @@
 
 More detailed description.
 """
-import math
-
-import gdal
-import ogr
 from pyrasta.crs import srs_from
 from pyrasta.utils import gdal_progress_bar
+
+try:
+    from osgeo import gdal, ogr
+except ImportError:
+    import gdal
+    import ogr
 
 
 def _polygonize(raster, filename, band, layer_name,

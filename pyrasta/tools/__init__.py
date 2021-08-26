@@ -9,7 +9,10 @@ from functools import wraps
 
 from pyrasta.io_.files import RasterTempFile
 
-import gdal
+try:
+    from osgeo import gdal
+except ImportError:
+    import gdal
 
 
 def _return_raster(function):

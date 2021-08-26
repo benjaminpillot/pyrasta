@@ -8,7 +8,6 @@ More detailed description.
 import multiprocessing as mp
 
 import numpy as np
-import ogr
 import pyproj
 from pyrasta.io_.files import _copy_to_file
 from pyrasta.tools.calculator import _op, _raster_calculation, _log, _log10
@@ -26,7 +25,11 @@ from pyrasta.tools.stats import _histogram, _zonal_stats
 from pyrasta.tools.windows import _windowing
 from pyrasta.utils import lazyproperty, grid, MP_CHUNK_SIZE
 
-import gdal
+try:
+    from osgeo import gdal, ogr
+except ImportError:
+    import gdal
+    import ogr
 
 gdal.UseExceptions()
 

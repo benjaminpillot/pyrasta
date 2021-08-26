@@ -14,7 +14,10 @@ from pyrasta.tools.windows import get_block_windows, get_xy_block_windows
 from pyrasta.utils import split_into_chunks
 from tqdm import tqdm
 
-import gdal
+try:
+    from osgeo import gdal
+except ImportError:
+    import gdal
 
 OP_WINDOW_SIZE = 1000
 
