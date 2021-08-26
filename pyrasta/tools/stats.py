@@ -18,6 +18,7 @@ STATISTIC_FUNC = dict(count=np.size,
                       mean=np.mean,
                       min=np.min,
                       max=np.max,
+                      std=np.std,
                       sum=np.sum)
 
 
@@ -56,10 +57,11 @@ def _zonal_stats(raster, layer, band, stats, customized_stat,
         band number
     stats: list[str]
         list of strings of valid available statistics:
-        - 'count' returns number of values
+        - 'count' returns number of valid values in zone
         - 'mean' returns average over the values within each zone
         - 'median' returns median
         - 'sum' returns the sum of all values in zone
+        - 'std' returns std of all values in zone
         - 'min' returns minimum value
         - 'max' returns maximum value
     customized_stat: dict
