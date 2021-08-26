@@ -643,7 +643,7 @@ class RasterBase:
             Band number
         stats: list[str]
             list of valid statistic names
-            "mean", "median", "min", "max", "sum", "std"
+            "count", "mean", "median", "min", "max", "sum", "std"
         customized_stats: dict
             User's own customized statistic functions
             as {'your_function_name': function}
