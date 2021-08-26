@@ -36,7 +36,7 @@ def _raster_mask(raster, geodataframe, driver, output_type, no_data, all_touched
     return raster.__class__.raster_calculation([raster, mask],
                                                partial(_mask, no_data=no_data),
                                                gdal_driver=driver,
-                                               output_type=raster.data_type,
+                                               output_type=output_type,
                                                no_data=no_data,
                                                description="Compute mask",
                                                window_size=window_size,
