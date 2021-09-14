@@ -58,7 +58,7 @@ from pyrasta.raster import Raster
 import geopandas
 rstats = Raster("/path/to/your/raster").zonal_stats(geopandas.GeoDataFrame.from_file("/path/to/your/layer"),
                                                     stats=["mean", "median", "min", "max"],
-                                                    customized_stats={"my_mean": my_mean})
+                                                    customized_stats={"my_stat": my_stat})
 
 ```
 
