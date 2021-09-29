@@ -241,6 +241,12 @@ def get_xy_block_windows(window_size, raster_x_size, raster_y_size):
     Window coordinates: tuple
         4-element tuple returning the coordinates of the window within the raster
     """
+
+    if raster_x_size % window_size[0]:
+        raster_x_size -= (raster_x_size % window_size[0])
+    if raster_y_size % window_size[1]:
+        raster_y_size -= (raster_y_size % window_size[1])
+
     for y in range(0, raster_y_size, window_size[1]):
         ysize = min(window_size[1], raster_y_size - y)
         for x in range(0, raster_x_size, window_size[0]):
@@ -272,6 +278,12 @@ def get_block_windows(window_size, raster_x_size, raster_y_size):
     Window coordinates: tuple
         4-element tuple returning the coordinates of the window within the raster
     """
+
+    if raster_x_size % window_size:
+        raster_x_size -= (raster_x_size % window_size)
+    if raster_y_size % window_size:
+        raster_y_size -= (raster_y_size % window_size)
+
     for y in range(0, raster_y_size, window_size):
         ysize = min(window_size, raster_y_size - y)
         for x in range(0, raster_x_size, window_size):
@@ -307,6 +319,12 @@ def get_moving_windows(window_size, raster_x_size, raster_y_size, step=1):
     """
     offset = int((window_size - 1) / 2)  # window_size must be an odd number
     # for each pixel, compute indices of the window (all included)
+
+    if raster_x_size % step:
+        raster_x_size -= (raster_x_size % step)
+    if raster_y_size % step:
+        raster_y_size -= (raster_y_size % step)
+
     for y in range(0, raster_y_size, step):
         y1 = max(0, y - offset)
         y2 = min(raster_y_size - 1, y + offset)
