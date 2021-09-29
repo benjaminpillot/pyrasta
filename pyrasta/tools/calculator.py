@@ -7,10 +7,10 @@ More detailed description.
 
 import multiprocessing as mp
 import numpy as np
+from numba import jit
 
 from pyrasta.tools import _gdal_temp_dataset, _return_raster, _clone_gdal_dataset
 from pyrasta.tools.mapping import GDAL_TO_NUMPY
-from pyrasta.tools.windows import get_block_windows, get_xy_block_windows
 from pyrasta.utils import split_into_chunks
 from tqdm import tqdm
 
@@ -22,6 +22,40 @@ except ImportError:
 OP_WINDOW_SIZE = 1000
 
 
+@jit(nopython=True, nogil=True)
+def get_xy_block_windows(window_size, raster_x_size, raster_y_size):
+    """ Get xy block window coordinates
+
+    Description
+    -----------
+    Get xy block window coordinates depending
+    on raster size and window size
+    Used specifically for calculations. All windows are
+    retrieved, whichever the size.
+
+    Parameters
+    ----------
+    window_size: (int, int)
+        size of window to read within raster as (width, height)
+    raster_x_size: int
+        raster's width
+    raster_y_size: int
+        raster's height
+
+    Yields
+    -------
+    Window coordinates: tuple
+        4-element tuple returning the coordinates of the window within the raster
+    """
+
+    for y in range(0, raster_y_size, window_size[1]):
+        ysize = min(window_size[1], raster_y_size - y)
+        for x in range(0, raster_x_size, window_size[0]):
+            xsize = min(window_size[0], raster_x_size - x)
+
+            yield x, y, xsize, ysize
+
+
 @_return_raster
 def _log(raster, out_file):
 
@@ -29,7 +63,9 @@ def _log(raster, out_file):
                                  gdal.GetDataTypeByName("float32"))
 
     for band in range(raster.nb_band):
-        for window in get_block_windows(OP_WINDOW_SIZE, raster.x_size, raster.y_size):
+        for window in get_xy_block_windows([OP_WINDOW_SIZE, OP_WINDOW_SIZE],
+                                           raster.x_size,
+                                           raster.y_size):
 
             array = raster._gdal_dataset.GetRasterBand(band + 1).\
                 ReadAsArray(*window).astype("float32")
@@ -46,7 +82,9 @@ def _log10(raster, out_file):
                                  gdal.GetDataTypeByName("float32"))
 
     for band in range(raster.nb_band):
-        for window in get_block_windows(OP_WINDOW_SIZE, raster.x_size, raster.y_size):
+        for window in get_xy_block_windows([OP_WINDOW_SIZE, OP_WINDOW_SIZE],
+                                           raster.x_size,
+                                           raster.y_size):
 
             array = raster._gdal_dataset.GetRasterBand(band + 1).\
                 ReadAsArray(*window).astype("float32")
@@ -65,7 +103,9 @@ def _op(raster1, out_file, raster2, op_type):
 
     for band in range(1, raster1.nb_band + 1):
 
-        for window in get_block_windows(OP_WINDOW_SIZE, raster1.x_size, raster1.y_size):
+        for window in get_xy_block_windows([OP_WINDOW_SIZE, OP_WINDOW_SIZE],
+                                           raster1.x_size,
+                                           raster1.y_size):
             arrays = []
             for src in [raster1, raster2]:
                 try:
