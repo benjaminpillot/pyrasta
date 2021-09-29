@@ -190,16 +190,18 @@ class WindowGenerator:
     @property
     def x_size(self):
         if self.method == "block":
-            return int(self.raster.x_size / self.window_size) + \
-                   min(1, self.raster.x_size % self.window_size)
+            return int(self.raster.x_size / self.window_size)
+                   # + \
+                   # min(1, self.raster.x_size % self.window_size)
         else:
             return self.raster.x_size
 
     @property
     def y_size(self):
         if self.method == "block":
-            return int(self.raster.y_size / self.window_size) + \
-                   min(1, self.raster.y_size % self.window_size)
+            return int(self.raster.y_size / self.window_size)
+                   # + \
+                   # min(1, self.raster.y_size % self.window_size)
         else:
             return self.raster.y_size
 
@@ -219,43 +221,6 @@ class WindowGenerator:
 
 
 @jit(nopython=True, nogil=True)
-def get_xy_block_windows(window_size, raster_x_size, raster_y_size):
-    """ Get xy block window coordinates
-
-    Description
-    -----------
-    Get xy block window coordinates depending
-    on raster size and window size
-
-    Parameters
-    ----------
-    window_size: (int, int)
-        size of window to read within raster as (width, height)
-    raster_x_size: int
-        raster's width
-    raster_y_size: int
-        raster's height
-
-    Yields
-    -------
-    Window coordinates: tuple
-        4-element tuple returning the coordinates of the window within the raster
-    """
-
-    if raster_x_size % window_size[0]:
-        raster_x_size -= (raster_x_size % window_size[0])
-    if raster_y_size % window_size[1]:
-        raster_y_size -= (raster_y_size % window_size[1])
-
-    for y in range(0, raster_y_size, window_size[1]):
-        ysize = min(window_size[1], raster_y_size - y)
-        for x in range(0, raster_x_size, window_size[0]):
-            xsize = min(window_size[0], raster_x_size - x)
-
-            yield x, y, xsize, ysize
-
-
-@jit(nopython=True, nogil=True)
 def get_block_windows(window_size, raster_x_size, raster_y_size):
     """ Get block window coordinates
 
@@ -263,6 +228,8 @@ def get_block_windows(window_size, raster_x_size, raster_y_size):
     -----------
     Get block window coordinates depending
     on raster size and window size
+    Only coordinates of full windows (i.e. (win_size, win_size))
+    are returned
 
     Parameters
     ----------
