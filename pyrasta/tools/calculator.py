@@ -63,7 +63,7 @@ def _log(raster, out_file):
                                  gdal.GetDataTypeByName("float32"))
 
     for band in range(raster.nb_band):
-        for window in get_xy_block_windows([OP_WINDOW_SIZE, OP_WINDOW_SIZE],
+        for window in get_xy_block_windows((OP_WINDOW_SIZE, OP_WINDOW_SIZE),
                                            raster.x_size,
                                            raster.y_size):
 
@@ -82,7 +82,7 @@ def _log10(raster, out_file):
                                  gdal.GetDataTypeByName("float32"))
 
     for band in range(raster.nb_band):
-        for window in get_xy_block_windows([OP_WINDOW_SIZE, OP_WINDOW_SIZE],
+        for window in get_xy_block_windows((OP_WINDOW_SIZE, OP_WINDOW_SIZE),
                                            raster.x_size,
                                            raster.y_size):
 
@@ -103,7 +103,7 @@ def _op(raster1, out_file, raster2, op_type):
 
     for band in range(1, raster1.nb_band + 1):
 
-        for window in get_xy_block_windows([OP_WINDOW_SIZE, OP_WINDOW_SIZE],
+        for window in get_xy_block_windows((OP_WINDOW_SIZE, OP_WINDOW_SIZE),
                                            raster1.x_size,
                                            raster1.y_size):
             arrays = []

@@ -117,6 +117,7 @@ class WindowGenerator:
     """ Generator of windows over raster
 
     """
+    # TODO: add window step for moving window
 
     def __init__(self, raster, band, window_size, method):
         """ WindowGenerator constructor
