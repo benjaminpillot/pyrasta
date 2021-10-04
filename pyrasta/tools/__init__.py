@@ -7,6 +7,7 @@ More detailed description.
 
 from functools import wraps
 
+from pyrasta import GDAL_DEFAULT_DRIVER
 from pyrasta.io_.files import RasterTempFile
 
 try:
@@ -46,8 +47,8 @@ def _gdal_temp_dataset(out_file, gdal_driver, projection, x_size, y_size,
     try:
         out_ds = gdal_driver.Create(out_file, x_size, y_size, nb_band, data_type)
     except RuntimeError:
-        out_ds = gdal.GetDriverByName('Gtiff').Create(out_file, x_size,
-                                                      y_size, nb_band, data_type)
+        out_ds = GDAL_DEFAULT_DRIVER.Create(out_file, x_size,
+                                            y_size, nb_band, data_type)
 
     out_ds.SetGeoTransform(geo_transform)
     out_ds.SetProjection(projection)
