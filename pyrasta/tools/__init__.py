@@ -16,11 +16,20 @@ except ImportError:
     import gdal
 
 
+def driver_authorizes_creation(gdal_driver):
+
+    return True if 'DCAP_CREATE' in gdal_driver.GetMetadata().keys() else False
+
+
 def _return_raster(function):
     @wraps(function)
     def return_raster(raster, *args, **kwargs):
         try:
-            with RasterTempFile(raster._gdal_driver.GetMetadata()['DMD_EXTENSION']) as out_file:
+            if driver_authorizes_creation(raster._gdal_driver):
+                gdal_driver = raster._gdal_driver
+            else:
+                gdal_driver = GDAL_DEFAULT_DRIVER
+            with RasterTempFile(gdal_driver.GetMetadata()['DMD_EXTENSION']) as out_file:
                 function(raster, out_file.path, *args, **kwargs)
                 new_raster = raster.__class__(out_file.path)
         except AttributeError:
