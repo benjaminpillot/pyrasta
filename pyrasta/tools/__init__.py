@@ -7,6 +7,7 @@ More detailed description.
 
 from functools import wraps
 
+from pyrasta import GDAL_DEFAULT_DRIVER
 from pyrasta.io_.files import RasterTempFile
 
 try:
@@ -15,11 +16,20 @@ except ImportError:
     import gdal
 
 
+def driver_authorizes_creation(gdal_driver):
+
+    return True if 'DCAP_CREATE' in gdal_driver.GetMetadata().keys() else False
+
+
 def _return_raster(function):
     @wraps(function)
     def return_raster(raster, *args, **kwargs):
         try:
-            with RasterTempFile(raster._gdal_driver.GetMetadata()['DMD_EXTENSION']) as out_file:
+            if driver_authorizes_creation(raster._gdal_driver):
+                gdal_driver = raster._gdal_driver
+            else:
+                gdal_driver = GDAL_DEFAULT_DRIVER
+            with RasterTempFile(gdal_driver.GetMetadata()['DMD_EXTENSION']) as out_file:
                 function(raster, out_file.path, *args, **kwargs)
                 new_raster = raster.__class__(out_file.path)
         except AttributeError:
@@ -46,8 +56,8 @@ def _gdal_temp_dataset(out_file, gdal_driver, projection, x_size, y_size,
     try:
         out_ds = gdal_driver.Create(out_file, x_size, y_size, nb_band, data_type)
     except RuntimeError:
-        out_ds = gdal.GetDriverByName('Gtiff').Create(out_file, x_size,
-                                                      y_size, nb_band, data_type)
+        out_ds = GDAL_DEFAULT_DRIVER.Create(out_file, x_size,
+                                            y_size, nb_band, data_type)
 
     out_ds.SetGeoTransform(geo_transform)
     out_ds.SetProjection(projection)
