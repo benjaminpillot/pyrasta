@@ -164,6 +164,20 @@ class RasterBase:
     def from_array(cls, array, crs, bounds,
                    gdal_driver=gdal.GetDriverByName("Gtiff"),
                    no_data=-999):
+        """
+
+        Parameters
+        ----------
+        array
+        crs: pyproj.CRS
+        bounds
+        gdal_driver
+        no_data
+
+        Returns
+        -------
+
+        """
 
         return _array_to_raster(cls, array, crs, bounds, gdal_driver, no_data)
 
