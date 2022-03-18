@@ -69,7 +69,12 @@ class RasterTempFile(TempFile):
 
     """
     def __init__(self, extension):
-        super().__init__(mkstemp(suffix='.' + extension)[1])
+        self.fid, path = mkstemp(suffix='.' + extension)
+        super().__init__(path)
+
+    def __del__(self):
+        os.close(self.fid)
+        super().__del__()
 
 
 class VrtTempFile(TempFile):
