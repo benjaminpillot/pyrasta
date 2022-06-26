@@ -164,11 +164,14 @@ def _padding(raster, out_file, pad_x, pad_y, pad_value):
 
 
 @_return_raster
-def _project_raster(raster, out_file, new_crs):
+def _project_raster(raster, out_file, new_crs, resampling_mode):
     """ Project raster onto new CRS
 
     """
-    gdal.Warp(out_file, raster._gdal_dataset, dstSRS=srs_from(new_crs))
+    gdal.Warp(out_file,
+              raster._gdal_dataset,
+              dstSRS=srs_from(new_crs),
+              resampleAlg=resampling_mode)
 
 
 def _read_array(raster, band, bounds):

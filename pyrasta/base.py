@@ -164,6 +164,20 @@ class RasterBase:
     def from_array(cls, array, crs, bounds,
                    gdal_driver=gdal.GetDriverByName("Gtiff"),
                    no_data=-999):
+        """
+
+        Parameters
+        ----------
+        array
+        crs: pyproj.CRS
+        bounds
+        gdal_driver
+        no_data
+
+        Returns
+        -------
+
+        """
 
         return _array_to_raster(cls, array, crs, bounds, gdal_driver, no_data)
 
@@ -395,8 +409,8 @@ class RasterBase:
 
         Description
         -----------
-        Calculate raster expression stated in "fhandle"
-        such as: fhandle(raster1, raster2, etc.)
+        Calculate raster expression stated in "fhandle" using
+        a list of rasters such as: fhandle([raster1, raster2, etc.])
         Calculation is made for each band.
 
         Parameters
@@ -549,19 +563,24 @@ class RasterBase:
         """
         return _sieve(self, threshold, connectedness, progress_bar)
 
-    def to_crs(self, crs):
+    def to_crs(self, crs, resampling_mode=None):
         """ Re-project raster onto new CRS
 
         Parameters
         ----------
         crs: int or str or pyproj.CRS
             valid CRS (Valid pyproj CRS, EPSG code, proj string, etc.)
+        resampling_mode: algorithm used for resampling
+            'near', 'bilinear', 'cubic', 'cubicspline', 'lanczos',
+            'average', 'rms', 'mode', 'max', 'min', 'med', 'q1',
+            'q3', 'sum'
+            See GDAL API for more information
 
         Returns
         -------
 
         """
-        return _project_raster(self, pyproj.CRS(crs))
+        return _project_raster(self, pyproj.CRS(crs), resampling_mode)
 
     def to_file(self, filename):
         """ Write raster copy to file

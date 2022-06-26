@@ -5,11 +5,14 @@
 More detailed description.
 """
 
-__version__ = '1.3.14'
+__version__ = '1.3.15'
 __author__ = 'Benjamin Pillot'
 __email__ = 'benjaminpillot@riseup.net'
 
 
-import gdal
+try:
+    from osgeo import gdal
+except ImportError:
+    import gdal
 
 GDAL_DEFAULT_DRIVER = gdal.GetDriverByName("Gtiff")
