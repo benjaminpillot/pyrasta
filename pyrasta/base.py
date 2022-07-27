@@ -249,7 +249,8 @@ class RasterBase:
     @classmethod
     def merge(cls, rasters, bounds=None,
               gdal_driver=gdal.GetDriverByName("Gtiff"),
-              data_type=gdal.GetDataTypeByName('Float32'), no_data=-999):
+              data_type=gdal.GetDataTypeByName('Float32'),
+              no_data=-999, resampling_mode=None):
         """ Merge multiple rasters
 
         Description
@@ -266,12 +267,13 @@ class RasterBase:
             GDAL data type
         no_data: int or float
             output no data value in merged raster
+        resampling_mode: str
 
         Returns
         -------
 
         """
-        return _merge(cls, rasters, gdal_driver, bounds, data_type, no_data)
+        return _merge(cls, rasters, gdal_driver, bounds, data_type, no_data, resampling_mode)
 
     @classmethod
     def merge_bands(cls, rasters, resolution="highest",
