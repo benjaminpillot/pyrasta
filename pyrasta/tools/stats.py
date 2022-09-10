@@ -86,9 +86,15 @@ def _zonal_stats(raster, layer, band, stats, customized_stat,
             except RuntimeError:
                 yield None
 
-    stats_calc = {name: STATISTIC_FUNC[name] for name in stats}
-    if customized_stat is not None:
+    try:
+        stats_calc = {name: STATISTIC_FUNC[name] for name in stats}
+    except TypeError:
+        stats_calc = {}
+
+    try:
         stats_calc.update(customized_stat)
+    except TypeError:
+        pass
 
     layer["__ID__"] = layer.index
     raster_layer = raster.rasterize(layer, raster.projection, raster.x_size,
