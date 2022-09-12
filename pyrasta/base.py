@@ -701,9 +701,8 @@ class RasterBase:
             to the values for each feature in layer
 
         """
-        if stats is not None:
-            return _zonal_stats(self, layer, band, stats, customized_stats,
-                                all_touched, show_progressbar, nb_processes)
+        return _zonal_stats(self, layer, band, stats, customized_stats,
+                            all_touched, show_progressbar, nb_processes)
 
     @property
     def crs(self):
