@@ -15,7 +15,7 @@ except ImportError:
 @_return_raster
 def _merge(raster_class, out_file, gdal_driver,
            sources, bounds, data_type, input_no_data,
-           output_no_data):
+           output_no_data, resampling_mode):
     """ Merge multiple raster sources
 
     """
@@ -34,4 +34,5 @@ def _merge(raster_class, out_file, gdal_driver,
               format=gdal_driver.GetDescription(),
               srcNodata=input_no_data,
               dstNodata=output_no_data,
-              outputType=data_type)
+              outputType=data_type,
+              resampleAlg=resampling_mode)

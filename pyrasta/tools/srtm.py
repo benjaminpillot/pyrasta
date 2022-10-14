@@ -115,4 +115,4 @@ def from_cgiar_online_database(bounds):
     return DigitalElevationModel.merge(tiles,
                                        bounds,
                                        data_type=CGIAR_DATA_TYPE,
-                                       no_data=CGIAR_NO_DATA)
+                                       output_no_data=CGIAR_NO_DATA)

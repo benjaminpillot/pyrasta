@@ -186,8 +186,9 @@ def _read_array(raster, band, bounds):
         reverse_transform = ~forward_transform
         px_min, py_max = reverse_transform * (x_min, y_min)
         px_max, py_min = reverse_transform * (x_max, y_max)
-        x_size = int(px_max - px_min) + 1
-        y_size = int(py_max - py_min) + 1
+        x_size = min(int(px_max - px_min) + 1, raster.x_size)   # + 1 --> Do not add 1 as pixel number start at 0 !!
+        y_size = min(int(py_max - py_min) + 1, raster.y_size)   # But use min() instead for the case bounds are the
+        # original raster bounds
 
         if band is not None:
             return raster._gdal_dataset.GetRasterBand(band).ReadAsArray(int(px_min),

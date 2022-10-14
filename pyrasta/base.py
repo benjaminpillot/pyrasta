@@ -251,7 +251,8 @@ class RasterBase:
               gdal_driver=gdal.GetDriverByName("Gtiff"),
               data_type=gdal.GetDataTypeByName('Float32'),
               input_no_data=None,
-              output_no_data=-999):
+              output_no_data=-999,
+              resampling_mode=None):
         """ Merge multiple rasters
 
         Description
@@ -270,6 +271,12 @@ class RasterBase:
             list of input value(s) to be considered as no data
         output_no_data: int or float
             output no data value in merged raster
+        resampling_mode: str
+            algorithm used for resampling
+            'near', 'bilinear', 'cubic', 'cubicspline', 'lanczos',
+            'average', 'rms', 'mode', 'max', 'min', 'med', 'q1',
+            'q3', 'sum'
+            See GDAL API for more information
 
         Returns
         -------
@@ -280,7 +287,7 @@ class RasterBase:
             input_no_data = [src.no_data for src in rasters]
 
         return _merge(cls, rasters, gdal_driver, bounds, data_type,
-                      input_no_data, output_no_data)
+                      input_no_data, output_no_data, resampling_mode)
 
     @classmethod
     def merge_bands(cls, rasters, resolution="highest",
@@ -570,7 +577,8 @@ class RasterBase:
         ----------
         crs: int or str or pyproj.CRS
             valid CRS (Valid pyproj CRS, EPSG code, proj string, etc.)
-        resampling_mode: algorithm used for resampling
+        resampling_mode: str
+            algorithm used for resampling
             'near', 'bilinear', 'cubic', 'cubicspline', 'lanczos',
             'average', 'rms', 'mode', 'max', 'min', 'med', 'q1',
             'q3', 'sum'
@@ -693,9 +701,8 @@ class RasterBase:
             to the values for each feature in layer
 
         """
-        if stats is not None:
-            return _zonal_stats(self, layer, band, stats, customized_stats,
-                                all_touched, show_progressbar, nb_processes)
+        return _zonal_stats(self, layer, band, stats, customized_stats,
+                            all_touched, show_progressbar, nb_processes)
 
     @property
     def crs(self):
