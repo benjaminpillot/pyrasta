@@ -273,8 +273,12 @@ def _set_data_type(raster, out_file, data_type):
 @_return_raster
 def _set_no_data(raster, out_file, no_data):
 
-    out_ds = gdal.Translate(out_file, raster._gdal_dataset,
-                            noData=no_data)
+    # out_ds = gdal.Translate(out_file, raster._gdal_dataset,
+    #                         noData=no_data)
+    out_ds = gdal.Warp(out_file,
+                       raster._gdal_dataset,
+                       srcNodata=raster.no_data,
+                       dstNodata=no_data)
 
     # Close dataset
     out_ds = None

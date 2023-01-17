@@ -99,7 +99,8 @@ def _op(raster1, out_file, raster2, op_type):
     """ Basic arithmetic operations
 
     """
-    out_ds = _clone_gdal_dataset(raster1, out_file, data_type=gdal.GetDataTypeByName('float32'))
+    out_ds = _clone_gdal_dataset(raster1, out_file,
+                                 data_type=gdal.GetDataTypeByName('float32'))
 
     for band in range(1, raster1.nb_band + 1):
 
@@ -127,11 +128,24 @@ def _op(raster1, out_file, raster2, op_type):
             elif op_type == "rpow":
                 result = arrays[1] ** arrays[0]
             elif op_type == "truediv":
-                result = arrays[0] / arrays[1]
+                result = np.full(arrays[0].shape, raster1.no_data)
+                if not np.isscalar(arrays[1]):
+                    result[arrays[1] != 0] = \
+                        arrays[0][arrays[1] != 0] / arrays[1][arrays[1] != 0]
+                else:
+                    if arrays[1] != 0:
+                        result = arrays[0] / arrays[1]
             elif op_type == "rtruediv":
-                return arrays[1] / arrays[0]
+                result = np.full(arrays[0].shape, raster1.no_data)
+                result[arrays[0] != 0] = arrays[1] / arrays[0][arrays[0] != 0]
             else:
                 result = None
+
+            if np.isscalar(arrays[1]):
+                result[arrays[0] == raster1.no_data] = raster1.no_data
+            else:
+                result[(arrays[0] == raster1.no_data) | (arrays[1] == raster2.no_data)] = \
+                    raster1.no_data
 
             out_ds.GetRasterBand(band).WriteArray(result, window[0], window[1])
 
