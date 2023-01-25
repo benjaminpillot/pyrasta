@@ -540,20 +540,20 @@ class RasterBase:
         """
         return _set_no_data(self, no_data)
 
-    def set_data_type(self, data_type):
-        """ Set data type
-
-        Parameters
-        ----------
-        data_type: str
-            Valid GDAL data type name
-
-        Returns
-        -------
-        RasterBase
-
-        """
-        return _set_data_type(self, gdal.GetDataTypeByName(data_type))
+    # def set_data_type(self, data_type):
+    #     """ Set data type
+    #
+    #     Parameters
+    #     ----------
+    #     data_type: str
+    #         Valid GDAL data type name
+    #
+    #     Returns
+    #     -------
+    #     RasterBase
+    #
+    #     """
+    #     return _set_data_type(self, gdal.GetDataTypeByName(data_type))
 
     def sieve_filter(self, threshold=1, connectedness=4, progress_bar=False):
         """ Apply sieve filter
