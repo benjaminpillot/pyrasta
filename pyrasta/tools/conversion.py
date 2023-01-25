@@ -179,7 +179,10 @@ def _read_array(raster, band, bounds):
 
     """
     if bounds is None:
-        return raster._gdal_dataset.ReadAsArray()
+        if band is not None:
+            return raster._gdal_dataset.GetRasterBand(band).ReadAsArray()
+        else:
+            return raster._gdal_dataset.ReadAsArray()
     else:
         x_min, y_min, x_max, y_max = bounds
         forward_transform = affine.Affine.from_gdal(*raster.geo_transform)
@@ -273,12 +276,11 @@ def _set_data_type(raster, out_file, data_type):
 @_return_raster
 def _set_no_data(raster, out_file, no_data):
 
-    # out_ds = gdal.Translate(out_file, raster._gdal_dataset,
-    #                         noData=no_data)
-    out_ds = gdal.Warp(out_file,
-                       raster._gdal_dataset,
-                       srcNodata=raster.no_data,
-                       dstNodata=no_data)
+    vrt_ds = gdal.BuildVRT(VrtTempFile().path, raster._gdal_dataset,
+                           srcNodata=raster.no_data,
+                           VRTNodata=no_data)
+
+    out_ds = gdal.Translate(out_file, vrt_ds)
 
     # Close dataset
     out_ds = None
