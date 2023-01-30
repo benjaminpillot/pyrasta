@@ -14,6 +14,13 @@ except ImportError:
     import gdal
 
 
+def mask_clip(arrays):
+    msk = arrays[0]
+    rs = arrays[1]
+
+    return msk * rs
+
+
 @_return_raster
 def _clip_raster_by_extent(raster, out_file, bounds, no_data):
     """ Clip raster by extent
@@ -94,6 +101,6 @@ def _clip_raster_by_mask(raster, geodataframe, no_data, all_touched):
 
     return clip_raster.__class__.raster_calculation([clip_raster,
                                                      clip_raster.__class__(r_file.path)],
-                                                    lambda x, y: x*y,
+                                                    mask_clip,
                                                     no_data=no_data,
-                                                    showprogressbar=False)
+                                                    description=None)
