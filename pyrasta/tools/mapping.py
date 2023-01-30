@@ -21,6 +21,7 @@ NUMPY_TO_GDAL = {"int8": 1,
                  "uint32": 4,
                  "int32": 5,
                  "float32": 6,
+                 "int64": 7,
                  "float64": 7,
                  "complex64": 10,
                  "complex128": 11}
