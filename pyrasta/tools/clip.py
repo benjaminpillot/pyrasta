@@ -4,6 +4,8 @@
 
 More detailed description.
 """
+from functools import partial
+
 from pyrasta.io_ import ESRI_DRIVER
 from pyrasta.io_.files import RasterTempFile, ShapeTempFile
 from pyrasta.tools import _return_raster, _gdal_temp_dataset
@@ -12,13 +14,6 @@ try:
     from osgeo import gdal
 except ImportError:
     import gdal
-
-
-def mask_clip(arrays):
-    msk = arrays[0]
-    rs = arrays[1]
-
-    return msk * rs
 
 
 @_return_raster
@@ -65,7 +60,7 @@ def _clip_raster_by_mask(raster, geodataframe, no_data, all_touched):
         raster to clip
     geodataframe: geopandas.GeoDataFrame or gistools.layer.GeoLayer
     no_data: float or int
-        No data value
+        No data value in output raster
     all_touched: bool
         if True, clip all pixels that are touched, otherwise clip
         if pixel's centroids are within boundaries
@@ -75,7 +70,7 @@ def _clip_raster_by_mask(raster, geodataframe, no_data, all_touched):
     RasterBase
 
     """
-    clip_raster = raster.clip(bounds=geodataframe.total_bounds)
+    clip_raster = raster.clip(bounds=geodataframe.total_bounds, no_data=no_data)
 
     with ShapeTempFile() as shp_file, \
             RasterTempFile(clip_raster._gdal_driver.GetMetadata()['DMD_EXTENSION']) as r_file:
@@ -101,6 +96,14 @@ def _clip_raster_by_mask(raster, geodataframe, no_data, all_touched):
 
     return clip_raster.__class__.raster_calculation([clip_raster,
                                                      clip_raster.__class__(r_file.path)],
-                                                    mask_clip,
+                                                    partial(mask_clip, no_data=no_data),
                                                     no_data=no_data,
                                                     description=None)
+
+
+def mask_clip(arrays, no_data):
+
+    result = arrays[0] * arrays[1]
+    result[arrays[1] != 1] = no_data
+
+    return result
