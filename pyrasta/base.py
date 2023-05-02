@@ -733,6 +733,10 @@ class RasterBase:
         return [lon for lon in grid(self.x_origin + self.geo_transform[1]/2,
                                     self.geo_transform[1], self.x_size)]
 
+    @property
+    def file(self):
+        return self._file
+
     @lazyproperty
     def max(self):
         """ Return raster maximum value for each band
