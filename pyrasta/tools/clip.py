@@ -4,6 +4,8 @@
 
 More detailed description.
 """
+from functools import partial
+
 from pyrasta.io_ import ESRI_DRIVER
 from pyrasta.io_.files import RasterTempFile, ShapeTempFile
 from pyrasta.tools import _return_raster, _gdal_temp_dataset
@@ -14,11 +16,13 @@ except ImportError:
     import gdal
 
 
-def mask_clip(arrays):
-    msk = arrays[0]
-    rs = arrays[1]
+def mask_clip(arrays, no_data):
+    rs = arrays[0]
+    msk = arrays[1]
 
-    return msk * rs
+    rs[msk != 1] = no_data
+
+    return rs
 
 
 @_return_raster
@@ -75,7 +79,7 @@ def _clip_raster_by_mask(raster, geodataframe, no_data, all_touched):
     RasterBase
 
     """
-    clip_raster = raster.clip(bounds=geodataframe.total_bounds)
+    clip_raster = raster.clip(bounds=geodataframe.total_bounds, no_data=no_data)
 
     with ShapeTempFile() as shp_file, \
             RasterTempFile(clip_raster._gdal_driver.GetMetadata()['DMD_EXTENSION']) as r_file:
@@ -101,6 +105,6 @@ def _clip_raster_by_mask(raster, geodataframe, no_data, all_touched):
 
     return clip_raster.__class__.raster_calculation([clip_raster,
                                                      clip_raster.__class__(r_file.path)],
-                                                    mask_clip,
+                                                    partial(mask_clip, no_data=no_data),
                                                     no_data=no_data,
                                                     description=None)
