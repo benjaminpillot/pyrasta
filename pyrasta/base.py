@@ -719,10 +719,6 @@ class RasterBase:
         return self.x_origin, self.y_origin - self.resolution[1] * self.y_size, \
             self.x_origin + self.resolution[0] * self.x_size, self.y_origin
 
-    @property
-    def file(self):
-        return self._file
-
     @lazyproperty
     def geo_transform(self):
         return self._gdal_dataset.GetGeoTransform()
