@@ -75,22 +75,22 @@ def _clip_raster_by_mask(raster, geodataframe, no_data, all_touched):
     RasterBase
 
     """
-    # clip_raster = raster.clip(bounds=geodataframe.total_bounds, no_data=no_data)
+    clip_raster = raster.clip(bounds=geodataframe.total_bounds, no_data=no_data)
 
     with ShapeTempFile() as shp_file, \
-            RasterTempFile(raster._gdal_driver.GetMetadata()['DMD_EXTENSION']) as r_file:
+            RasterTempFile(clip_raster._gdal_driver.GetMetadata()['DMD_EXTENSION']) as r_file:
 
         geodataframe.to_file(shp_file.path, driver=ESRI_DRIVER)
 
         out_ds = _gdal_temp_dataset(r_file.path,
-                                    raster._gdal_driver,
-                                    raster._gdal_dataset.GetProjection(),
-                                    raster.x_size,
-                                    raster.y_size,
-                                    raster.nb_band,
-                                    raster.geo_transform,
-                                    raster.data_type,
-                                    raster.no_data)
+                                    clip_raster._gdal_driver,
+                                    clip_raster._gdal_dataset.GetProjection(),
+                                    clip_raster.x_size,
+                                    clip_raster.y_size,
+                                    clip_raster.nb_band,
+                                    clip_raster.geo_transform,
+                                    clip_raster.data_type,
+                                    clip_raster.no_data)
 
         gdal.Rasterize(out_ds,
                        shp_file.path,
@@ -99,11 +99,11 @@ def _clip_raster_by_mask(raster, geodataframe, no_data, all_touched):
 
     out_ds = None
 
-    return raster.__class__.raster_calculation([raster,
-                                                raster.__class__(r_file.path)],
-                                               partial(mask_clip, no_data=no_data),
-                                               no_data=no_data,
-                                               description=None)
+    return clip_raster.__class__.raster_calculation([clip_raster,
+                                                     clip_raster.__class__(r_file.path)],
+                                                    partial(mask_clip, no_data=no_data),
+                                                    no_data=no_data,
+                                                    description=None)
 
 
 def mask_clip(arrays, no_data):
