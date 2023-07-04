@@ -6,3 +6,4 @@ More detailed description.
 """
 
 ESRI_DRIVER = "ESRI Shapefile"
+GEOJSON_DRIVER = "GeoJSON"
