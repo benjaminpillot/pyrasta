@@ -9,6 +9,7 @@ import multiprocessing as mp
 
 import numpy as np
 import pyproj
+from pyrasta.io_ import GEOJSON_DRIVER
 from pyrasta.io_.files import _copy_to_file
 from pyrasta.tools.calculator import _op, _raster_calculation, _log, _log10
 from pyrasta.tools.clip import _clip_raster_by_extent, _clip_raster_by_mask
@@ -116,7 +117,7 @@ class RasterBase:
 
         return _align_raster(self, other)
 
-    def clip(self, bounds=None, mask=None, no_data=-999, all_touched=True):
+    def clip(self, bounds=None, mask=None, no_data=-999, all_touched=True, driver=GEOJSON_DRIVER):
         """ Clip raster
 
         Parameters
@@ -130,6 +131,8 @@ class RasterBase:
         all_touched: bool
             if True, all touched pixels within layer boundaries are burnt,
             when clipping raster by mask
+        driver: str
+
 
         Returns
         -------
@@ -140,7 +143,7 @@ class RasterBase:
         if bounds is not None:
             return _clip_raster_by_extent(self, bounds, no_data)
         elif mask is not None:
-            return _clip_raster_by_mask(self, mask, no_data, all_touched)
+            return _clip_raster_by_mask(self, mask, no_data, all_touched, driver)
         else:
             raise ValueError("Either bounds or mask must be set")
 

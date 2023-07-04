@@ -50,6 +50,12 @@ class NamedTempFile(TempFile):
         super().__init__(self.name + "." + extension)
 
 
+class GeojsonTempFile(NamedTempFile):
+
+    def __init__(self):
+        super().__init__("geojson")
+
+
 class ShapeTempFile(NamedTempFile):
 
     def __init__(self):

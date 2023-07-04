@@ -7,7 +7,7 @@ More detailed description.
 from functools import partial
 
 from pyrasta.io_ import ESRI_DRIVER
-from pyrasta.io_.files import RasterTempFile, ShapeTempFile
+from pyrasta.io_.files import RasterTempFile, ShapeTempFile, GeojsonTempFile
 from pyrasta.tools import _return_raster, _gdal_temp_dataset
 
 try:
@@ -56,7 +56,7 @@ def _clip_raster_by_extent(raster, out_file, bounds, no_data):
     #           outputType=raster.data_type)
 
 
-def _clip_raster_by_mask(raster, geodataframe, no_data, all_touched):
+def _clip_raster_by_mask(raster, geodataframe, no_data, all_touched, driver):
     """ Clip raster by mask from geographic layer
 
     Parameters
@@ -77,10 +77,15 @@ def _clip_raster_by_mask(raster, geodataframe, no_data, all_touched):
     """
     clip_raster = raster.clip(bounds=geodataframe.total_bounds, no_data=no_data)
 
-    with ShapeTempFile() as shp_file, \
+    if driver == "ESRI Shapefile":
+        temp_file = ShapeTempFile
+    else:
+        temp_file = GeojsonTempFile
+
+    with temp_file() as tempfile, \
             RasterTempFile(clip_raster._gdal_driver.GetMetadata()['DMD_EXTENSION']) as r_file:
 
-        geodataframe.to_file(shp_file.path, driver=ESRI_DRIVER)
+        geodataframe.to_file(tempfile.path, driver=driver)
 
         out_ds = _gdal_temp_dataset(r_file.path,
                                     clip_raster._gdal_driver,
@@ -93,7 +98,7 @@ def _clip_raster_by_mask(raster, geodataframe, no_data, all_touched):
                                     clip_raster.no_data)
 
         gdal.Rasterize(out_ds,
-                       shp_file.path,
+                       tempfile.path,
                        burnValues=[1],
                        allTouched=all_touched)
 
