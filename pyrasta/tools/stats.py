@@ -96,15 +96,16 @@ def _zonal_stats(raster, layer, band, stats, customized_stat,
     except TypeError:
         pass
 
-    layer["__ID__"] = layer.index
-    raster_layer = raster.rasterize(layer, raster.projection, raster.x_size,
+    copy_layer = layer.copy()
+    copy_layer["__ID__"] = copy_layer.index
+    raster_layer = raster.rasterize(copy_layer, raster.projection, raster.x_size,
                                     raster.y_size, raster.geo_transform,
                                     attribute="__ID__", all_touched=all_touched)
 
-    bounds = layer.bounds.to_numpy()
+    bounds = copy_layer.bounds.to_numpy()
     zone = zone_gen(raster, bounds, band)
     zone_id = zone_gen(raster_layer, bounds)
-    multi_gen = tee(zip(layer.index, zone, zone_id), len(stats_calc))
+    multi_gen = tee(zip(copy_layer.index, zone, zone_id), len(stats_calc))
 
     iterator = zip(multi_gen, stats_calc.keys())
 
@@ -116,7 +117,7 @@ def _zonal_stats(raster, layer, band, stats, customized_stat,
                                                               no_data=raster.no_data,
                                                               stat_function=stats_calc[name]),
                                                       generator),
-                                         total=len(layer),
+                                         total=len(copy_layer),
                                          unit_scale=True,
                                          desc=f"Compute zonal {name}"))
         else:
