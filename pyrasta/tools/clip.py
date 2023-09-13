@@ -99,7 +99,8 @@ def _clip_raster_by_mask(raster, geodataframe, no_data, all_touched, driver):
 
         gdal.Rasterize(out_ds,
                        tempfile.path,
-                       burnValues=[1],
+                       bands=list(range(1, clip_raster.nb_band + 1)),
+                       burnValues=[1] * clip_raster.nb_band,
                        allTouched=all_touched)
 
     out_ds = None
