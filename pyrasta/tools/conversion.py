@@ -212,7 +212,7 @@ def _read_value_at(raster, x, y):
     forward_transform = affine.Affine.from_gdal(*raster.geo_transform)
     reverse_transform = ~forward_transform
     xoff, yoff = reverse_transform * (x, y)
-    value = raster._gdal_dataset.ReadAsArray(xoff, yoff, 1, 1)
+    value = raster._gdal_dataset.ReadAsArray(int(xoff), int(yoff), 1, 1)
     if value.size > 1:
         return value
     else:
