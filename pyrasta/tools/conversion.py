@@ -5,8 +5,8 @@
 More detailed description.
 """
 from pyrasta.crs import srs_from
-from pyrasta.io_.files import VrtTempFile, _copy_to_file
-from pyrasta.tools import _gdal_temp_dataset, _return_raster, _clone_gdal_dataset
+from pyrasta.io_.files import VrtTempFile
+from pyrasta.tools import _gdal_temp_dataset, _return_raster
 
 import affine
 from pyrasta.tools.mapping import NUMPY_TO_GDAL
