@@ -82,8 +82,12 @@ def _zonal_stats(raster, layer, band, stats, customized_stat,
     def zone_gen(ras, bds, bd=1):
         for boundary in bds:
             try:
-                yield ras.read_array(bd, boundary)
-            except RuntimeError:
+                valid_bounds = (max(boundary[0], ras.bounds[0]),
+                                max(boundary[1], ras.bounds[1]),
+                                min(boundary[2], ras.bounds[2]),
+                                min(boundary[3], ras.bounds[3]))
+                yield ras.read_array(band=bd, bounds=valid_bounds)
+            except (ValueError, RuntimeError):
                 yield None
 
     try:
