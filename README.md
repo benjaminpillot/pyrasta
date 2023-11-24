@@ -30,6 +30,21 @@ The easiest way to install PyRasta is by using ``pip`` in a terminal
 $ pip install pyrasta
 ```
 
+### Note on GDAL
+Installing GDAL through `pip` might be tricky as it only gets
+the bindings, so be sure the library is already installed on 
+your machine, and that the headers are located in the right
+folder. Another solution may to install it through a third-party
+distribution such as `conda`:
+
+```
+(your_virtual_environment) $ conda install gdal
+```
+
+If you are tempted by directly installing GDAL/OGR and the [GDAL Python libraries](https://pypi.org/project/GDAL/) 
+on your machine, see [here](https://framagit.org/benjaminpillot/fototex/-/wikis/How-to-install-GDAL) for the steps 
+you should follow.
+
 ## Examples
 
 ### Build digital elevation model from CGIAR SRTM site
