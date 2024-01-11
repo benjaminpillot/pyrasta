@@ -77,7 +77,7 @@ def _array_to_raster(raster_class, out_file, gdal_driver,
                                 # gdal_array.NumericTypeCodeToGDALTypeCode(array.dtype),
                                 no_data)
 
-    if nb_band == 1:
+    if array.ndim == 2:
         out_ds.GetRasterBand(nb_band).WriteArray(array)
     else:
         for band in range(nb_band):
