@@ -102,7 +102,7 @@ class RasterBase:
     def __del__(self):
         self._gdal_dataset = None
 
-    def align_raster(self, other):
+    def align_raster(self, other, resampling_method="near"):
         """ Align raster on other
 
         Description
@@ -112,10 +112,16 @@ class RasterBase:
         ----------
         other: RasterBase
             other RasterBase instance
+        resampling_method: str
+            Resampling method used before aligning rasters
+            'near', 'bilinear', 'cubic', 'cubicspline', 'lanczos',
+            'average', 'rms', 'mode', 'max', 'min', 'med', 'q1',
+            'q3', 'sum'
+            See GDAL API for more information (https://gdal.org/programs/gdalwarp.html)
 
         """
 
-        return _align_raster(self, other)
+        return _align_raster(self, other, resampling_method)
 
     def clip(self, bounds=None, mask=None, no_data=-999, all_touched=True, driver=GEOJSON_DRIVER):
         """ Clip raster
