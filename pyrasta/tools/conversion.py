@@ -19,7 +19,7 @@ except ImportError:
 
 
 @_return_raster
-def _align_raster(in_raster, out_file, on_raster):
+def _align_raster(in_raster, out_file, on_raster, method):
     """ Align raster on other raster
 
     """
@@ -28,7 +28,9 @@ def _align_raster(in_raster, out_file, on_raster):
                                 on_raster.x_size, on_raster.y_size, in_raster.nb_band,
                                 on_raster.geo_transform, in_raster.data_type, in_raster.no_data)
 
-    gdal.Warp(out_ds, in_raster._gdal_dataset)
+    gdal.Warp(out_ds,
+              in_raster._gdal_dataset,
+              resampleAlg=method)
 
     # Close dataset
     out_ds = None
