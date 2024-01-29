@@ -370,7 +370,7 @@ class RasterBase:
                            progress_bar)
 
     @classmethod
-    def rasterize(cls, layer, projection, x_size, y_size, geo_transform,
+    def rasterize(cls, layer, x_size, y_size, geo_transform,
                   burn_values=None, attribute=None,
                   gdal_driver=gdal.GetDriverByName("Gtiff"), nb_band=1,
                   data_type=gdal.GetDataTypeByName("Float32"), no_data=-999,
@@ -381,18 +381,16 @@ class RasterBase:
         ----------
         layer: geopandas.GeoDataFrame or gistools.layer.GeoLayer
             Geographic layer to be rasterized
-        projection: str
-            Projection as a WKT string
         x_size: int
             Raster width
         y_size: int
             Raster height
         geo_transform: tuple
         burn_values: list[float] or list[int], default None
-            List of values to be burnt in each band, excusive with attribute
+            List of values to be burnt in each band, exclusive with attribute
         attribute: str, default None
             Layer's attribute to be used for values to be burnt in raster,
-            excusive with burn_values
+            exclusive with burn_values
         gdal_driver: osgeo.gdal.Driver, default GeoTiff
             GDAL driver
         nb_band: int, default 1
@@ -409,9 +407,9 @@ class RasterBase:
         -------
 
         """
-        return _rasterize(cls, layer, burn_values, attribute, gdal_driver, projection,
-                          x_size, y_size, nb_band, geo_transform, data_type, no_data,
-                          all_touched, progress_bar)
+        return _rasterize(cls, layer, burn_values, attribute, gdal_driver,
+                          x_size, y_size, nb_band, geo_transform,
+                          data_type, no_data, all_touched, progress_bar)
 
     @classmethod
     def raster_calculation(cls, rasters, fhandle, window_size=100,
