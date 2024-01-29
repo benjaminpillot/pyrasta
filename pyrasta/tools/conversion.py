@@ -224,7 +224,7 @@ def _read_value_at(raster, x, y):
 
 
 @_return_raster
-def _resample_raster(raster, out_file, factor):
+def _resample_raster(raster, out_file, factor, method):
     """ Resample raster
 
     Parameters
@@ -241,16 +241,20 @@ def _resample_raster(raster, out_file, factor):
     out_ds = _gdal_temp_dataset(out_file,
                                 raster._gdal_driver,
                                 raster._gdal_dataset.GetProjection(),
-                                raster.x_size * factor,
-                                raster.y_size * factor,
+                                int(raster.x_size * factor),
+                                int(raster.y_size * factor),
                                 raster.nb_band,
                                 geo_transform,
                                 raster.data_type,
                                 raster.no_data)
 
-    for band in range(1, raster.nb_band+1):
-        gdal.RegenerateOverview(raster._gdal_dataset.GetRasterBand(band),
-                                out_ds.GetRasterBand(band), 'mode')
+    # for band in range(1, raster.nb_band+1):
+    #     gdal.RegenerateOverview(raster._gdal_dataset.GetRasterBand(band),
+    #                             out_ds.GetRasterBand(band), 'mode')
+
+    gdal.Warp(out_ds,
+              raster._gdal_dataset,
+              resampleAlg=method)
 
     # Close dataset
     out_ds = None
