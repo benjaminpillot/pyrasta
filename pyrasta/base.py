@@ -15,7 +15,7 @@ from pyrasta.tools.calculator import _op, _raster_calculation, _log, _log10
 from pyrasta.tools.clip import _clip_raster_by_extent, _clip_raster_by_mask
 from pyrasta.tools.conversion import _resample_raster, _padding, _rescale_raster, \
     _align_raster, _extract_bands, _merge_bands, _read_array, _xy_to_2d_index, _read_value_at, \
-    _project_raster, _array_to_raster, _set_no_data, _set_data_type
+    _project_raster, _array_to_raster, _set_no_data
 from pyrasta.exceptions import RasterBaseError
 from pyrasta.tools.filters import _sieve
 from pyrasta.tools.mask import _raster_mask
@@ -497,25 +497,32 @@ class RasterBase:
         """
         return _read_value_at(self, x, y)
 
-    def resample(self, factor):
+    def resample(self, factor, resampling_method="near"):
         """ Resample raster
 
         Description
         -----------
         Resample raster with respect to resampling factor.
-        The higher the factor, the higher the resampling.
+        If factor > 1, resampling is downsampling (i.e. disaggregation)
+        If factor < 1, resampling is upsampling (i.e. aggregation)
 
         Parameters
         ----------
         factor: int or float
             Resampling factor
+        resampling_method: str
+            Resampling method used before aligning rasters
+            'near', 'bilinear', 'cubic', 'cubicspline', 'lanczos',
+            'average', 'rms', 'mode', 'max', 'min', 'med', 'q1',
+            'q3', 'sum'
+            See GDAL API for more information (https://gdal.org/programs/gdalwarp.html)
 
         Returns
         -------
         RasterBase
             New temporary resampled instance
         """
-        return _resample_raster(self, factor)
+        return _resample_raster(self, factor, resampling_method)
 
     def rescale(self, r_min, r_max):
         """ Rescale values from raster
@@ -675,7 +682,7 @@ class RasterBase:
         """
         return _xy_to_2d_index(self, x, y)
 
-    def zonal_stats(self, layer, band=1, stats=None, customized_stats=None,
+    def zonal_stats(self, layer, band=None, stats=None, customized_stats=None,
                     all_touched=True, show_progressbar=True,
                     nb_processes=mp.cpu_count()):
         """ Compute zonal statistics
@@ -687,8 +694,10 @@ class RasterBase:
         ----------
         layer: geopandas.GeoDataFrame or gistools.layer.GeoLayer
             Geographic layer
-        band: int
-            Band number
+        band: int or None
+            Band number. If None and raster is multi-band,
+            zonal stats are computed for all bands (result
+            as a list of dictionaries)
         stats: list[str]
             list of valid statistic names
             "count", "mean", "median", "min", "max", "sum", "std"
