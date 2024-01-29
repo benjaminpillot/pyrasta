@@ -53,7 +53,7 @@ def _zonal_stats(raster, layer, band, stats, customized_stat,
         Raster from which zonal statistics must be computed
     layer: geopandas.GeoDataFrame or gistools.layer.GeoLayer
         Geographic layer as a GeoDataFrame or GeoLayer
-    band: int
+    band: int or None
         band number
     stats: list[str]
         list of strings of valid available statistics:
@@ -90,48 +90,62 @@ def _zonal_stats(raster, layer, band, stats, customized_stat,
             except (ValueError, RuntimeError):
                 yield None
 
-    try:
-        stats_calc = {name: STATISTIC_FUNC[name] for name in stats}
-    except TypeError:
-        stats_calc = {}
+    if raster.nb_band == 1:
+        band = 1
 
-    try:
-        stats_calc.update(customized_stat)
-    except TypeError:
-        pass
+    if band is None:
+        output = []
+        for b in tqdm(range(raster.nb_band),
+                      total=raster.nb_band,
+                      desc="Compute multiband zonal stats"):
+            output.append(_zonal_stats(raster, layer, b + 1, stats, customized_stat,
+                                       all_touched, False, nb_processes))
+        return output
 
-    copy_layer = layer.copy()
-    copy_layer["__ID__"] = copy_layer.index
-    raster_layer = raster.rasterize(copy_layer, raster.projection, raster.x_size,
-                                    raster.y_size, raster.geo_transform,
-                                    attribute="__ID__", all_touched=all_touched)
+    else:
 
-    bounds = copy_layer.bounds.to_numpy()
-    zone = zone_gen(raster, bounds, band)
-    zone_id = zone_gen(raster_layer, bounds)
-    multi_gen = tee(zip(copy_layer.index, zone, zone_id), len(stats_calc))
+        try:
+            stats_calc = {name: STATISTIC_FUNC[name] for name in stats}
+        except TypeError:
+            stats_calc = {}
 
-    iterator = zip(multi_gen, stats_calc.keys())
+        try:
+            stats_calc.update(customized_stat)
+        except TypeError:
+            pass
 
-    output = dict()
-    with mp.Pool(processes=nb_processes) as pool:
-        if show_progressbar:
-            for generator, name in iterator:
-                output[name] = list(tqdm(pool.starmap(partial(_compute_stat_in_feature,
-                                                              no_data=raster.no_data,
-                                                              stat_function=stats_calc[name]),
-                                                      generator),
-                                         total=len(copy_layer),
-                                         unit_scale=True,
-                                         desc=f"Compute zonal {name}"))
-        else:
-            for generator, name in iterator:
-                output[name] = list(pool.starmap(partial(_compute_stat_in_feature,
-                                                         no_data=raster.no_data,
-                                                         stat_function=stats_calc[name]),
-                                                 generator))
+        copy_layer = layer.copy()
+        copy_layer["__ID__"] = copy_layer.index
+        raster_layer = raster.rasterize(copy_layer, raster.projection, raster.x_size,
+                                        raster.y_size, raster.geo_transform,
+                                        attribute="__ID__", all_touched=all_touched)
 
-    return output
+        bounds = copy_layer.bounds.to_numpy()
+        zone = zone_gen(raster, bounds, band)
+        zone_id = zone_gen(raster_layer, bounds)
+        multi_gen = tee(zip(copy_layer.index, zone, zone_id), len(stats_calc))
+
+        iterator = zip(multi_gen, stats_calc.keys())
+
+        output = dict()
+        with mp.Pool(processes=nb_processes) as pool:
+            if show_progressbar:
+                for generator, name in iterator:
+                    output[name] = list(tqdm(pool.starmap(partial(_compute_stat_in_feature,
+                                                                  no_data=raster.no_data,
+                                                                  stat_function=stats_calc[name]),
+                                                          generator),
+                                             total=len(copy_layer),
+                                             unit_scale=True,
+                                             desc=f"Compute zonal {name}"))
+            else:
+                for generator, name in iterator:
+                    output[name] = list(pool.starmap(partial(_compute_stat_in_feature,
+                                                             no_data=raster.no_data,
+                                                             stat_function=stats_calc[name]),
+                                                     generator))
+
+        return output
 
 
 def _compute_stat_in_feature(idx, zone, zone_id, no_data, stat_function):
