@@ -37,7 +37,6 @@ def _rasterize(raster_class, out_file, gdal_driver, geodataframe,
         list of values to burn in each band, excusive with attribute
     attribute: str
         attribute in layer from which burn value must be retrieved
-    projection
     x_size: int
     y_size: int
     nb_band: int
@@ -58,7 +57,7 @@ def _rasterize(raster_class, out_file, gdal_driver, geodataframe,
 
         out_ds = _gdal_temp_dataset(out_file,
                                     gdal_driver,
-                                    projection,
+                                    geodataframe.crs.to_wkt(),
                                     x_size,
                                     y_size,
                                     nb_band,
