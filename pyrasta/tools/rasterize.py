@@ -18,7 +18,7 @@ except ImportError:
 
 @_return_raster
 def _rasterize(raster_class, out_file, gdal_driver, geodataframe,
-               burn_values, attribute, projection, x_size, y_size,
+               burn_values, attribute, x_size, y_size,
                nb_band, geo_transform, data_type, no_data, all_touched,
                progress_bar):
     """ Rasterize geographic layer
