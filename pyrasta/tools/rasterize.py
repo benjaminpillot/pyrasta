@@ -19,7 +19,7 @@ except ImportError:
 @_return_raster
 def _rasterize(raster_class, out_file, gdal_driver, geodataframe,
                burn_values, attribute, x_size, y_size,
-               nb_band, geo_transform, data_type, no_data, all_touched,
+               nb_band, geo_transform, out_data_type, no_data, all_touched,
                progress_bar):
     """ Rasterize geographic layer
 
@@ -41,7 +41,7 @@ def _rasterize(raster_class, out_file, gdal_driver, geodataframe,
     y_size: int
     nb_band: int
     geo_transform: tuple
-    data_type
+    out_data_type
     no_data
     all_touched: bool
     progress_bar: bool
@@ -62,7 +62,7 @@ def _rasterize(raster_class, out_file, gdal_driver, geodataframe,
                                     y_size,
                                     nb_band,
                                     geo_transform,
-                                    data_type,
+                                    out_data_type,
                                     no_data)
 
         callback, callback_data = gdal_progress_bar(progress_bar,

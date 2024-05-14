@@ -56,7 +56,8 @@ def _clip_raster_by_extent(raster, out_file, bounds, no_data):
     #           outputType=raster.data_type)
 
 
-def _clip_raster_by_mask(raster, geodataframe, no_data, all_touched, driver):
+def _clip_raster_by_mask(raster, geodataframe, no_data, all_touched,
+                         window_size, out_data_type, driver):
     """ Clip raster by mask from geographic layer
 
     Parameters
@@ -69,6 +70,10 @@ def _clip_raster_by_mask(raster, geodataframe, no_data, all_touched, driver):
     all_touched: bool
         if True, clip all pixels that are touched, otherwise clip
         if pixel's centroids are within boundaries
+    window_size: int or list[int, int]
+        Size of window for raster calculation
+    out_data_type: int
+        Output data type for masked raster
 
     Returns
     -------
@@ -108,8 +113,13 @@ def _clip_raster_by_mask(raster, geodataframe, no_data, all_touched, driver):
     return clip_raster.__class__.raster_calculation([clip_raster,
                                                      clip_raster.__class__(r_file.path)],
                                                     partial(mask_clip, no_data=no_data),
+                                                    input_type=out_data_type,
+                                                    output_type=out_data_type,
                                                     no_data=no_data,
-                                                    description=None)
+                                                    description="Compute mask",
+                                                    window_size=window_size,
+                                                    nb_processes=1,
+                                                    chunksize=1)
 
 
 def mask_clip(arrays, no_data):

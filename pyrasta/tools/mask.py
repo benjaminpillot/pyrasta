@@ -21,7 +21,7 @@ def _raster_mask(raster, geodataframe, driver, output_type, no_data, all_touched
 
     """
     mask = raster.__class__.rasterize(geodataframe,
-                                      raster.crs.to_wkt(),
+                                      # raster.crs.to_wkt(),
                                       raster.x_size,
                                       raster.y_size,
                                       raster.geo_transform,

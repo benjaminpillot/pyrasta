@@ -123,7 +123,9 @@ class RasterBase:
 
         return _align_raster(self, other, resampling_method)
 
-    def clip(self, bounds=None, mask=None, no_data=-999, all_touched=True, driver=GEOJSON_DRIVER):
+    def clip(self, bounds=None, mask=None, no_data=-999,
+             out_data_type=gdal.GetDataTypeByName('Float32'),
+             all_touched=True, window_size=500, driver=GEOJSON_DRIVER):
         """ Clip raster
 
         Parameters
@@ -134,9 +136,15 @@ class RasterBase:
             Valid mask layer
         no_data: int or float
             No data value
+        out_data_type: int, default=Float32
+            Output data type in clipped raster
+            Only applicable if clipped by mask
         all_touched: bool
             if True, all touched pixels within layer boundaries are burnt,
             when clipping raster by mask
+        window_size: int or list[int, int]
+            Size of window for raster calculation
+            (Clip by mask)
         driver: str
 
 
@@ -149,7 +157,8 @@ class RasterBase:
         if bounds is not None:
             return _clip_raster_by_extent(self, bounds, no_data)
         elif mask is not None:
-            return _clip_raster_by_mask(self, mask, no_data, all_touched, driver)
+            return _clip_raster_by_mask(self, mask, no_data, all_touched,
+                                        window_size, out_data_type, driver)
         else:
             raise ValueError("Either bounds or mask must be set")
 
@@ -238,7 +247,7 @@ class RasterBase:
             Mask layer as a GeoDataFrame or GeoLayer
         gdal_driver: osgeo.gdal.Driver
             Driver used to write data to file
-        output_type: int
+        output_type: int, default=Float32
             Raster GDAL output type ("int16", "float32", etc.)
         all_touched: bool
             if True, all touched pixels within layer boundaries are burnt,
@@ -373,7 +382,7 @@ class RasterBase:
     def rasterize(cls, layer, x_size, y_size, geo_transform,
                   burn_values=None, attribute=None,
                   gdal_driver=gdal.GetDriverByName("Gtiff"), nb_band=1,
-                  data_type=gdal.GetDataTypeByName("Float32"), no_data=-999,
+                  out_data_type=gdal.GetDataTypeByName("Float32"), no_data=-999,
                   all_touched=True, progress_bar=False):
         """ Rasterize geographic layer
 
@@ -395,7 +404,7 @@ class RasterBase:
             GDAL driver
         nb_band: int, default 1
             Number of bands
-        data_type: int, default "Float32"
+        out_data_type: int, default "Float32"
             GDAL data type
         no_data: int or float, default -999
             No data value
@@ -409,7 +418,7 @@ class RasterBase:
         """
         return _rasterize(cls, layer, burn_values, attribute, gdal_driver,
                           x_size, y_size, nb_band, geo_transform,
-                          data_type, no_data, all_touched, progress_bar)
+                          out_data_type, no_data, all_touched, progress_bar)
 
     @classmethod
     def raster_calculation(cls, rasters, fhandle, window_size=100,
