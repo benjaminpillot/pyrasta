@@ -57,7 +57,7 @@ def _clip_raster_by_extent(raster, out_file, bounds, no_data):
 
 
 def _clip_raster_by_mask(raster, geodataframe, no_data, all_touched,
-                         window_size, out_data_type, driver):
+                         window_size, out_data_type, driver, description):
     """ Clip raster by mask from geographic layer
 
     Parameters
@@ -74,6 +74,8 @@ def _clip_raster_by_mask(raster, geodataframe, no_data, all_touched,
         Size of window for raster calculation
     out_data_type: int
         Output data type for masked raster
+    driver
+    description: str
 
     Returns
     -------
@@ -116,7 +118,7 @@ def _clip_raster_by_mask(raster, geodataframe, no_data, all_touched,
                                                     input_type=out_data_type,
                                                     output_type=out_data_type,
                                                     no_data=no_data,
-                                                    description="Compute mask",
+                                                    description=description,
                                                     window_size=window_size,
                                                     nb_processes=1,
                                                     chunksize=1)
