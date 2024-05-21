@@ -125,7 +125,8 @@ class RasterBase:
 
     def clip(self, bounds=None, mask=None, no_data=-999,
              out_data_type=gdal.GetDataTypeByName('Float32'),
-             all_touched=True, window_size=500, driver=GEOJSON_DRIVER):
+             all_touched=True, window_size=500, driver=GEOJSON_DRIVER,
+             progress_bar=False):
         """ Clip raster
 
         Parameters
@@ -146,6 +147,8 @@ class RasterBase:
             Size of window for raster calculation
             (Clip by mask)
         driver: str
+        progress_bar: bool
+            If True, display a progress bar (clip by mask)
 
 
         Returns
@@ -154,11 +157,17 @@ class RasterBase:
             New temporary instance
 
         """
+        if progress_bar:
+            description = "Compute mask"
+        else:
+            description = None
+
         if bounds is not None:
             return _clip_raster_by_extent(self, bounds, no_data)
         elif mask is not None:
             return _clip_raster_by_mask(self, mask, no_data, all_touched,
-                                        window_size, out_data_type, driver)
+                                        window_size, out_data_type, driver,
+                                        description)
         else:
             raise ValueError("Either bounds or mask must be set")
 
@@ -236,7 +245,7 @@ class RasterBase:
         """
         return _log10(self)
 
-    def mask(self, mask, gdal_driver=gdal.GetDriverByName("Gtiff"),
+    def mask(self, mask, reverse=False, gdal_driver=gdal.GetDriverByName("Gtiff"),
              output_type=gdal.GetDataTypeByName('Float32'),
              all_touched=True, no_data=-999, window_size=500):
         """ Apply mask to raster
@@ -245,6 +254,9 @@ class RasterBase:
         ----------
         mask: geopandas.geodataframe or gistools.layer.GeoLayer
             Mask layer as a GeoDataFrame or GeoLayer
+        reverse: bool
+            If True, everything is masked except the part
+            defined by "mask"
         gdal_driver: osgeo.gdal.Driver
             Driver used to write data to file
         output_type: int, default=Float32
@@ -261,7 +273,7 @@ class RasterBase:
         -------
 
         """
-        return _raster_mask(self, mask, gdal_driver, output_type,
+        return _raster_mask(self, mask, reverse, gdal_driver, output_type,
                             no_data, all_touched, window_size)
 
     @classmethod
