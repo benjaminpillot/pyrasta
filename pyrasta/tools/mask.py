@@ -15,7 +15,16 @@ def _mask(arrays, no_data):
     return src
 
 
-def _raster_mask(raster, geodataframe, driver, output_type, no_data, all_touched,
+def _reversed_mask(arrays, no_data):
+    src = arrays[0]
+    mask = arrays[1]
+    src[mask != 1] = no_data
+
+    return src
+
+
+def _raster_mask(raster, geodataframe, reverse,
+                 driver, output_type, no_data, all_touched,
                  window_size):
     """ Apply mask into raster
 
@@ -28,8 +37,13 @@ def _raster_mask(raster, geodataframe, driver, output_type, no_data, all_touched
                                       burn_values=[1],
                                       all_touched=all_touched)
 
+    if reverse:
+        mask_fcn = partial(_reversed_mask, no_data=no_data)
+    else:
+        mask_fcn = partial(_mask, no_data=no_data)
+
     return raster.__class__.raster_calculation([raster, mask],
-                                               partial(_mask, no_data=no_data),
+                                               mask_fcn,
                                                gdal_driver=driver,
                                                output_type=output_type,
                                                no_data=no_data,
