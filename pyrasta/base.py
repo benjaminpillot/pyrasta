@@ -123,7 +123,7 @@ class RasterBase:
 
         return _align_raster(self, other, resampling_method)
 
-    def clip(self, bounds=None, mask=None, no_data=-999,
+    def clip(self, bounds=None, mask=None, out_no_data=-999,
              out_data_type=gdal.GetDataTypeByName('Float32'),
              all_touched=True, window_size=500, driver=GEOJSON_DRIVER,
              progress_bar=False):
@@ -135,8 +135,9 @@ class RasterBase:
             tuple (x_min, y_min, x_max, y_max) in map units
         mask: geopandas.GeoDataFrame
             Valid mask layer
-        no_data: int or float
-            No data value
+        out_no_data: int or float
+            No data value in output raster
+            Only applicable if clipped by mask
         out_data_type: int, default=Float32
             Output data type in clipped raster
             Only applicable if clipped by mask
@@ -163,9 +164,9 @@ class RasterBase:
             description = None
 
         if bounds is not None:
-            return _clip_raster_by_extent(self, bounds, no_data)
+            return _clip_raster_by_extent(self, bounds)
         elif mask is not None:
-            return _clip_raster_by_mask(self, mask, no_data, all_touched,
+            return _clip_raster_by_mask(self, mask, out_no_data, all_touched,
                                         window_size, out_data_type, driver,
                                         description)
         else:
