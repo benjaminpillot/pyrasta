@@ -17,7 +17,7 @@ except ImportError:
 
 
 @_return_raster
-def _clip_raster_by_extent(raster, out_file, bounds, no_data):
+def _clip_raster_by_extent(raster, out_file, bounds):
     """ Clip raster by extent
 
     Parameters
@@ -26,8 +26,6 @@ def _clip_raster_by_extent(raster, out_file, bounds, no_data):
     out_file: pyrasta.io_.files.RasterTempFile
     bounds: tuple
         boundaries as (minx, miny, maxx, maxy)
-    no_data: int or float
-        No data value
 
     Returns
     -------
@@ -56,7 +54,7 @@ def _clip_raster_by_extent(raster, out_file, bounds, no_data):
     #           outputType=raster.data_type)
 
 
-def _clip_raster_by_mask(raster, geodataframe, no_data, all_touched,
+def _clip_raster_by_mask(raster, geodataframe, out_no_data, all_touched,
                          window_size, out_data_type, driver, description):
     """ Clip raster by mask from geographic layer
 
@@ -65,7 +63,7 @@ def _clip_raster_by_mask(raster, geodataframe, no_data, all_touched,
     raster: pyrasta.raster.RasterBase
         raster to clip
     geodataframe: geopandas.GeoDataFrame or gistools.layer.GeoLayer
-    no_data: float or int
+    out_no_data: float or int
         No data value in output raster
     all_touched: bool
         if True, clip all pixels that are touched, otherwise clip
@@ -82,7 +80,7 @@ def _clip_raster_by_mask(raster, geodataframe, no_data, all_touched,
     RasterBase
 
     """
-    clip_raster = raster.clip(bounds=geodataframe.total_bounds, no_data=no_data)
+    clip_raster = raster.clip(bounds=geodataframe.total_bounds)
 
     if driver == "ESRI Shapefile":
         temp_file = ShapeTempFile
@@ -114,10 +112,10 @@ def _clip_raster_by_mask(raster, geodataframe, no_data, all_touched,
 
     return clip_raster.__class__.raster_calculation([clip_raster,
                                                      clip_raster.__class__(r_file.path)],
-                                                    partial(mask_clip, no_data=no_data),
+                                                    partial(mask_clip, no_data=out_no_data),
                                                     input_type=out_data_type,
                                                     output_type=out_data_type,
-                                                    no_data=no_data,
+                                                    no_data=out_no_data,
                                                     description=description,
                                                     window_size=window_size,
                                                     nb_processes=1,
