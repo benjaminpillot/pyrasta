@@ -483,7 +483,7 @@ class RasterBase:
                                    gdal_driver, input_type, output_type,
                                    no_data, nb_processes, chunksize, description)
 
-    def read_array(self, band=None, bounds=None):
+    def read_array(self, band=None, bounds=None, window=None):
         """ Write raster to numpy array
 
         Parameters
@@ -493,13 +493,16 @@ class RasterBase:
         bounds: tuple
             tuple as (x_min, y_min, x_max, y_max) in map units. If None, read
             the whole raster into array
+        window: tuple
+            4-element tuple with the pixel coordinates
+            of the window in the raster
 
         Returns
         -------
         numpy.ndarray
 
         """
-        return _read_array(self, band, bounds)
+        return _read_array(self, band, bounds, window)
 
     def read_value_at(self, x, y):
         """ Read value in raster at x/y map coordinates
