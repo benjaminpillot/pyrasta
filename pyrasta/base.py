@@ -491,12 +491,8 @@ class RasterBase:
             tuple as (x_min, y_min, x_max, y_max) in map units. If None, read
             the whole raster into array
         window: tuple
-            4-element tuple with the pixel coordinates
-            of the window in the raster
-        window: tuple
             4-element tuple giving the (pixel) coordinates
-            of the window within the raster as
-            (x, y, x_size, y_size)
+            of the window within the raster as (x, y, x_size, y_size)
             Ignored if None
 
         Returns
