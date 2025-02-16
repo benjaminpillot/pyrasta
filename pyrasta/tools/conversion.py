@@ -186,9 +186,8 @@ def _read_array(raster, band, bounds, window):
         else:
             return raster._gdal_dataset.ReadAsArray()
 
-    if window is not None:  # If bounds AND window are not None, priority is given to window
+    if window is not None:  # If both window and bounds are not None, window comes first
         px_min, py_min, x_size, y_size = window
-
     else:
         x_min, y_min, x_max, y_max = bounds
         forward_transform = affine.Affine.from_gdal(*raster.geo_transform)
