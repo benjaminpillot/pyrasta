@@ -176,15 +176,19 @@ def _project_raster(raster, out_file, new_crs, resampling_mode):
               resampleAlg=resampling_mode)
 
 
-def _read_array(raster, band, bounds):
+def _read_array(raster, band, bounds, window):
     """ Read array from raster
 
     """
-    if bounds is None:
+    if bounds is None and window is None:
         if band is not None:
             return raster._gdal_dataset.GetRasterBand(band).ReadAsArray()
         else:
             return raster._gdal_dataset.ReadAsArray()
+
+    if window is not None:  # If bounds AND window are not None, priority is given to window
+        px_min, py_min, x_size, y_size = window
+
     else:
         x_min, y_min, x_max, y_max = bounds
         forward_transform = affine.Affine.from_gdal(*raster.geo_transform)
@@ -197,16 +201,16 @@ def _read_array(raster, band, bounds):
         # y_size = min(int(py_max - py_min) + 1, raster.y_size)   # But use min() instead for the case bounds are the
                                                                 # original raster bounds
 
-        if band is not None:
-            return raster._gdal_dataset.GetRasterBand(band).ReadAsArray(int(px_min),
-                                                                        int(py_min),
-                                                                        x_size,
-                                                                        y_size)
-        else:
-            return raster._gdal_dataset.ReadAsArray(int(px_min),
-                                                    int(py_min),
-                                                    x_size,
-                                                    y_size)
+    if band is not None:
+        return raster._gdal_dataset.GetRasterBand(band).ReadAsArray(int(px_min),
+                                                                    int(py_min),
+                                                                    x_size,
+                                                                    y_size)
+    else:
+        return raster._gdal_dataset.ReadAsArray(int(px_min),
+                                                int(py_min),
+                                                x_size,
+                                                y_size)
 
 
 def _read_value_at(raster, x, y):

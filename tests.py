@@ -5,7 +5,7 @@
 More detailed description.
 """
 import numpy as np
-import osmnx as ox
+# import osmnx as ox
 from gistools.layer import PolygonLayer
 from matplotlib import pyplot
 

@@ -483,7 +483,7 @@ class RasterBase:
                                    gdal_driver, input_type, output_type,
                                    no_data, nb_processes, chunksize, description)
 
-    def read_array(self, band=None, bounds=None):
+    def read_array(self, band=None, bounds=None, window=None):
         """ Write raster to numpy array
 
         Parameters
@@ -493,6 +493,11 @@ class RasterBase:
         bounds: tuple
             tuple as (x_min, y_min, x_max, y_max) in map units. If None, read
             the whole raster into array
+        window: tuple
+            4-element tuple giving the (pixel) coordinates
+            of the window within the raster as
+            (x, y, x_size, y_size)
+            Ignored if None
 
         Returns
         -------
