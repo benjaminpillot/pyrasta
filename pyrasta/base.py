@@ -392,7 +392,7 @@ class RasterBase:
                            progress_bar)
 
     @classmethod
-    def rasterize(cls, layer, x_size, y_size, geo_transform,
+    def rasterize(cls, layer, raster,
                   burn_values=None, attribute=None,
                   gdal_driver=gdal.GetDriverByName("Gtiff"), nb_band=1,
                   out_data_type=gdal.GetDataTypeByName("Float32"), no_data=-999,
@@ -403,11 +403,8 @@ class RasterBase:
         ----------
         layer: geopandas.GeoDataFrame or gistools.layer.GeoLayer
             Geographic layer to be rasterized
-        x_size: int
-            Raster width
-        y_size: int
-            Raster height
-        geo_transform: tuple
+        raster: RasterBase
+            Raster used as a "template" for rasterizing
         burn_values: list[float] or list[int], default None
             List of values to be burnt in each band, exclusive with attribute
         attribute: str, default None
@@ -430,7 +427,7 @@ class RasterBase:
 
         """
         return _rasterize(cls, layer, burn_values, attribute, gdal_driver,
-                          x_size, y_size, nb_band, geo_transform,
+                          raster.x_size, raster.y_size, nb_band, raster.geo_transform,
                           out_data_type, no_data, all_touched, progress_bar)
 
     @classmethod
