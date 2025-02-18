@@ -16,7 +16,6 @@ from pyrasta.tools.clip import _clip_raster_by_extent, _clip_raster_by_mask
 from pyrasta.tools.conversion import _resample_raster, _padding, _rescale_raster, \
     _align_raster, _extract_bands, _merge_bands, _read_array, _xy_to_2d_index, _read_value_at, \
     _project_raster, _array_to_raster, _set_no_data
-from pyrasta.exceptions import RasterBaseError
 from pyrasta.tools.filters import _sieve
 from pyrasta.tools.mask import _raster_mask
 from pyrasta.tools.merge import _merge
@@ -51,7 +50,7 @@ class RasterBase:
         try:
             self._gdal_dataset = gdal.Open(src_file)
         except RuntimeError as e:
-            raise RasterBaseError('\nGDAL returns: \"%s\"' % e)
+            raise  RuntimeError('\nGDAL returns: \"%s\"' % e)
 
         # If NoData not defined, define here
         # for band in range(self.nb_band):
