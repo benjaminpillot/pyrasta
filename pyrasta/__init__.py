@@ -5,7 +5,7 @@
 More detailed description.
 """
 
-__version__ = '1.3.29'
+__version__ = '1.4.0'
 __author__ = 'Benjamin Pillot'
 __email__ = 'benjaminpillot@riseup.net'
 
