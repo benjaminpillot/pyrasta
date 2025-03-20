@@ -4,8 +4,8 @@
 
 More detailed description.
 """
-from pyrasta.io_ import ESRI_DRIVER
-from pyrasta.io_.files import ShapeTempFile
+from pyrasta.io_ import GEOJSON_DRIVER
+from pyrasta.io_.files import GeojsonTempFile
 from pyrasta.tools import _gdal_temp_dataset, _return_raster
 
 from pyrasta.utils import gdal_progress_bar
@@ -51,9 +51,9 @@ def _rasterize(raster_class, out_file, gdal_driver, geodataframe,
 
     """
 
-    with ShapeTempFile() as shp_file:
+    with GeojsonTempFile() as geojson_file:
 
-        geodataframe.to_file(shp_file.path, driver=ESRI_DRIVER)
+        geodataframe.to_file(geojson_file.path, driver=GEOJSON_DRIVER)
 
         out_ds = _gdal_temp_dataset(out_file,
                                     gdal_driver,
@@ -69,7 +69,7 @@ def _rasterize(raster_class, out_file, gdal_driver, geodataframe,
                                                     description="Rasterize layer")
 
         gdal.Rasterize(out_ds,
-                       shp_file.path,
+                       geojson_file.path,
                        bands=[bd + 1 for bd in range(nb_band)],
                        burnValues=burn_values,
                        attribute=attribute,

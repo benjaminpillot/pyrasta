@@ -4,8 +4,9 @@
 
 More detailed description.
 """
+from collections.abc import Collection
+
 import numpy as np
-from collections import Collection
 from itertools import chain, islice
 
 from numba import njit

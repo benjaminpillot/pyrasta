@@ -246,18 +246,28 @@ def get_block_windows(window_size, raster_x_size, raster_y_size):
     Window coordinates: tuple
         4-element tuple returning the coordinates of the window within the raster
     """
-
     if raster_x_size % window_size:
         raster_x_size -= (raster_x_size % window_size)
     if raster_y_size % window_size:
         raster_y_size -= (raster_y_size % window_size)
 
     for y in range(0, raster_y_size, window_size):
-        ysize = min(window_size, raster_y_size - y)
-        for x in range(0, raster_x_size, window_size):
-            xsize = min(window_size, raster_x_size - x)
 
-            yield x, y, xsize, ysize
+        for x in range(0, raster_x_size, window_size):
+
+            yield x, y, window_size, window_size
+
+    # if raster_x_size % window_size:
+    #     raster_x_size -= (raster_x_size % window_size)
+    # if raster_y_size % window_size:
+    #     raster_y_size -= (raster_y_size % window_size)
+    #
+    # for y in range(0, raster_y_size, window_size):
+    #     ysize = min(window_size, raster_y_size - y)
+    #     for x in range(0, raster_x_size, window_size):
+    #         xsize = min(window_size, raster_x_size - x)
+    #
+    #         yield x, y, xsize, ysize
 
 
 @jit(nopython=True, nogil=True)
@@ -285,6 +295,7 @@ def get_moving_windows(window_size, raster_x_size, raster_y_size, step=1):
     Window coordinates: tuple
         tuple of coordinates
     """
+
     offset = int((window_size - 1) / 2)  # window_size must be an odd number
     # for each pixel, compute indices of the window (all included)
 
@@ -293,13 +304,32 @@ def get_moving_windows(window_size, raster_x_size, raster_y_size, step=1):
     if raster_y_size % step:
         raster_y_size -= (raster_y_size % step)
 
-    for y in range(0, raster_y_size, step):
-        y1 = max(0, y - offset)
-        y2 = min(raster_y_size - 1, y + offset)
+    for y in range(offset, raster_y_size - offset, step):
+        y1 = y - offset
+        y2 = y + offset
         ysize = (y2 - y1) + 1
-        for x in range(0, raster_x_size, step):
-            x1 = max(0, x - offset)
-            x2 = min(raster_x_size - 1, x + offset)
+        for x in range(offset, raster_x_size - offset, step):
+            x1 = x - offset
+            x2 = x + offset
             xsize = (x2 - x1) + 1
 
             yield x1, y1, xsize, ysize
+
+    # offset = int((window_size - 1) / 2)  # window_size must be an odd number
+    # for each pixel, compute indices of the window (all included)
+    #
+    # if raster_x_size % step:
+    #     raster_x_size -= (raster_x_size % step)
+    # if raster_y_size % step:
+    #     raster_y_size -= (raster_y_size % step)
+    #
+    # for y in range(0, raster_y_size, step):
+    #     y1 = max(0, y - offset)
+    #     y2 = min(raster_y_size - 1, y + offset)
+    #     ysize = (y2 - y1) + 1
+    #     for x in range(0, raster_x_size, step):
+    #         x1 = max(0, x - offset)
+    #         x2 = min(raster_x_size - 1, x + offset)
+    #         xsize = (x2 - x1) + 1
+    #
+    #         yield x1, y1, xsize, ysize

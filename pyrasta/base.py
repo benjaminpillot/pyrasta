@@ -16,7 +16,6 @@ from pyrasta.tools.clip import _clip_raster_by_extent, _clip_raster_by_mask
 from pyrasta.tools.conversion import _resample_raster, _padding, _rescale_raster, \
     _align_raster, _extract_bands, _merge_bands, _read_array, _xy_to_2d_index, _read_value_at, \
     _project_raster, _array_to_raster, _set_no_data
-from pyrasta.exceptions import RasterBaseError
 from pyrasta.tools.filters import _sieve
 from pyrasta.tools.mask import _raster_mask
 from pyrasta.tools.merge import _merge
@@ -51,7 +50,7 @@ class RasterBase:
         try:
             self._gdal_dataset = gdal.Open(src_file)
         except RuntimeError as e:
-            raise RasterBaseError('\nGDAL returns: \"%s\"' % e)
+            raise  RuntimeError('\nGDAL returns: \"%s\"' % e)
 
         # If NoData not defined, define here
         # for band in range(self.nb_band):
@@ -392,7 +391,7 @@ class RasterBase:
                            progress_bar)
 
     @classmethod
-    def rasterize(cls, layer, x_size, y_size, geo_transform,
+    def rasterize(cls, layer, raster,
                   burn_values=None, attribute=None,
                   gdal_driver=gdal.GetDriverByName("Gtiff"), nb_band=1,
                   out_data_type=gdal.GetDataTypeByName("Float32"), no_data=-999,
@@ -403,11 +402,8 @@ class RasterBase:
         ----------
         layer: geopandas.GeoDataFrame or gistools.layer.GeoLayer
             Geographic layer to be rasterized
-        x_size: int
-            Raster width
-        y_size: int
-            Raster height
-        geo_transform: tuple
+        raster: RasterBase
+            Raster used as a "template" for rasterizing
         burn_values: list[float] or list[int], default None
             List of values to be burnt in each band, exclusive with attribute
         attribute: str, default None
@@ -430,7 +426,7 @@ class RasterBase:
 
         """
         return _rasterize(cls, layer, burn_values, attribute, gdal_driver,
-                          x_size, y_size, nb_band, geo_transform,
+                          raster.x_size, raster.y_size, nb_band, raster.geo_transform,
                           out_data_type, no_data, all_touched, progress_bar)
 
     @classmethod
@@ -483,7 +479,7 @@ class RasterBase:
                                    gdal_driver, input_type, output_type,
                                    no_data, nb_processes, chunksize, description)
 
-    def read_array(self, band=None, bounds=None):
+    def read_array(self, band=None, bounds=None, window=None):
         """ Write raster to numpy array
 
         Parameters
@@ -493,13 +489,17 @@ class RasterBase:
         bounds: tuple
             tuple as (x_min, y_min, x_max, y_max) in map units. If None, read
             the whole raster into array
+        window: tuple
+            4-element tuple giving the (pixel) coordinates
+            of the window within the raster as (x, y, x_size, y_size)
+            Ignored if None
 
         Returns
         -------
         numpy.ndarray
 
         """
-        return _read_array(self, band, bounds)
+        return _read_array(self, band, bounds, window)
 
     def read_value_at(self, x, y):
         """ Read value in raster at x/y map coordinates
