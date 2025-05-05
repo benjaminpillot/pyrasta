@@ -402,8 +402,10 @@ class RasterBase:
         ----------
         layer: geopandas.GeoDataFrame or gistools.layer.GeoLayer
             Geographic layer to be rasterized
-        raster: RasterBase
+        raster: RasterBase or object
             Raster used as a "template" for rasterizing
+            If object is not "Raster", it must have x_size,
+            y_size and geo_transform attributes
         burn_values: list[float] or list[int], default None
             List of values to be burnt in each band, exclusive with attribute
         attribute: str, default None
