@@ -116,8 +116,7 @@ def _zonal_stats(raster, layer, band, stats, customized_stat,
 
         copy_layer = layer.copy()
         copy_layer["__ID__"] = copy_layer.index
-        raster_layer = raster.rasterize(copy_layer, raster.projection, raster.x_size,
-                                        raster.y_size, raster.geo_transform,
+        raster_layer = raster.rasterize(copy_layer, raster,
                                         attribute="__ID__", all_touched=all_touched)
 
         bounds = copy_layer.bounds.to_numpy()
